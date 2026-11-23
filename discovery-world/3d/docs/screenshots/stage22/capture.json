@@ -1,0 +1,41 @@
+{
+  "url": "file:///workspace/chats/239bbbd65cda24ad89787673/discovery-world/3d/index.html",
+  "shots": [
+    {
+      "name": "mercury-crater",
+      "x": 14,
+      "info": {
+        "calls": 55,
+        "tris": 94870,
+        "geos": 1310,
+        "progs": 148
+      },
+      "models": {}
+    },
+    {
+      "name": "mercury-rays",
+      "x": 22,
+      "info": {
+        "calls": 61,
+        "tris": 100316,
+        "geos": 1317,
+        "progs": 148
+      },
+      "models": {}
+    },
+    {
+      "name": "mercury-plains",
+      "x": 34,
+      "info": {
+        "calls": 61,
+        "tris": 100316,
+        "geos": 1317,
+        "progs": 148
+      },
+      "models": {}
+    }
+  ],
+  "models": {},
+  "errors": [],
+  "oops": false
+}
