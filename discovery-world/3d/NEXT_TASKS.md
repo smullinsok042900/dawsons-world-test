@@ -33,8 +33,12 @@ remove it here and record it in `DEVELOPMENT_LOG.md`. Add new findings (bugs, id
   `docs/screenshots/stage18/`.
 - **Done:** Stage 19 — Studio (easel wall with five canvases, pottery wheel with four pots, paint-splattered workbench):
   `studio-detail` 4 meshes / 1,222 tris, audit 0 z-fighting, screenshots in `docs/screenshots/stage19/`.
-- **Exact next task:** Stage 20 — Wonder Lab: glass tube bench with bubbling flasks, specimen shelves and a
-  microscope table; capture at x 100 and 118, run `node tools/audit.cjs 100 118`, then sync the same PR.
+- **Done:** Stage 20 — Wonder Lab (glass-tube bench with burner tripod and bubbling flasks, three-tier specimen
+  shelves, microscope table with slide box and stool, glass cabinet): `lab-detail` 6 meshes / 10,332 tris, audit
+  0 z-fighting, screenshots in `docs/screenshots/stage20/`.
+- **Exact next task:** Stage 21 — the Moon first of the planet pass (crater rims and ejecta rays, layered regolith
+  colours), then Mercury → Venus → Mars → Jupiter → Saturn → Uranus → Pluto; capture from the planet approach, run
+  both tests and `node tools/audit.cjs`, then sync the same PR.
 - **Tooling now available (2026-11-23):** `@gltf-transform/cli` 4.5.1 is a devDependency; KTX-Software `ktx`
   v4.4.2 is at `~/ktx/bin` (ETC1S/Basis verified on `tree_0.glb`, output valid `KHR_texture_basisu`); Blender
   4.2.3 LTS runs headless from `~/blender-4.2.3-linux-x64` with user-space libs. KTX2 is **not** wired into
