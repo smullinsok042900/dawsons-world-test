@@ -14,8 +14,43 @@
 // ===================================================================
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { leafNormal } from './nature.js';
 
 const C = new THREE.Color();
+
+/**
+ * (stage 8) A broad leaf with real form instead of a flat card: the blade is lofted through
+ * rows of vertices so it arches up from the stalk, droops at the tip, cups along its edges and
+ * carries a raised midrib. Vertex colours darken the base and brighten the tip, and the UVs let
+ * the leaf normal map show veins. ~60 triangles per leaf, still instanced.
+ */
+export function broadLeafGeometry({ len = .46, wid = .3, rise = .2, droop = .1, cup = .05, rib = .022, seg = 8, across = 6, colA = '#5f9a52', colB = '#a7e29e' } = {}) {
+  const pos = [], idx = [], uvs = [], cols = [];
+  const a = new THREE.Color(colA), b = new THREE.Color(colB), c = new THREE.Color();
+  for (let i = 0; i <= seg; i++) {
+    const u = i / seg;
+    const w = wid * Math.pow(Math.sin(Math.PI * Math.min(1, u * .9 + .1)), .7) * (1 - .16 * u);
+    const y0 = rise * Math.sin(u * Math.PI * .9) - droop * u * u;
+    for (let j = 0; j <= across; j++) {
+      const v = (j / across) * 2 - 1;
+      // the blade cups up at its edges; the midrib stands proud along the centre line
+      const y = y0 + cup * v * v * (1 - u * .45) + rib * Math.pow(1 - Math.abs(v), 2.2) * (1 - u * .3);
+      pos.push(v * w, y, u * len);
+      uvs.push(j / across, u);
+      c.copy(a).lerp(b, u * .9).multiplyScalar(.86 + .2 * u);
+      cols.push(c.r, c.g, c.b);
+    }
+  }
+  for (let i = 0; i < seg; i++) for (let j = 0; j < across; j++) {
+    const p = i * (across + 1) + j, q = p + 1, r = p + across + 1, s = r + 1;
+    idx.push(p, r, q, q, r, s);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
+  g.setIndex(idx); g.computeVertexNormals(); return g;
+}
 
 function tinted(geo, hex) {
   const g = geo.clone();
@@ -256,27 +291,32 @@ export function buildDinoDetail({ scene, add, dx = 378, rnd }) {
   const rr = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
   const mtx = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), pos = new THREE.Vector3(), scl = new THREE.Vector3();
 
-  // --- lush broad-leaf plants: two rings of big oval leaves on short stems (reads as jungle, not conifers)
+  // --- lush broad-leaf plants: two rings of big, arching leaves on short stems (reads as jungle, not
+  //     conifers). (stage 8) each leaf is now a lofted, cupped blade with a midrib and a drooping tip,
+  //     not a flat painted circle, and the material carries the vein normal map so the surface catches light.
   const leafParts = [];
-  const greens = ['#8fd587', '#a3e096', '#77c873'];
+  const greens = [['#4f8f45', '#a7e29e'], ['#57994d', '#b4e8aa'], ['#478a40', '#98d994']];
   for (let ring = 0; ring < 2; ring++) {
-    const count = ring ? 4 : 6;
+    const count = ring ? 3 : 5;
     for (let i = 0; i < count; i++) {
       const a = i / count * Math.PI * 2 + ring * .6;
-      const len = .46 - ring * .09;
-      const leaf = new THREE.CircleGeometry(len, 10);
-      leaf.scale(1, .58, 1);
-      leaf.rotateX(-Math.PI / 2 + .42 + ring * .18);  // mostly flat, lifted at the tip
+      const len = .52 - ring * .09;
+      const [colA, colB] = greens[(i + ring) % 3];
+      const leaf = broadLeafGeometry({ len, wid: .31 - ring * .04, rise: .24, droop: .13, cup: .055, rib: .024, seg: 6, across: 4, colA, colB });
+      leaf.rotateX(-1.06 - ring * .12);  // rise from the soil, then arch over
       leaf.rotateY(a);
-      leaf.translate(0, .18 + ring * .22, 0);
-      leafParts.push(tinted(leaf, greens[(i + ring) % 3]));
-      leaf.dispose();
+      leaf.translate(0, .14 + ring * .2, .04);
+      leafParts.push(leaf);
     }
   }
-  const stem = new THREE.CylinderGeometry(.05, .09, .34, 6); stem.translate(0, .17, 0);
-  leafParts.push(tinted(stem, '#5f9a52')); stem.dispose();
+  for (const [sx, sz, tilt] of [[.12, .04, -.18], [-.1, -.06, .16]]) {
+    const stem = new THREE.CylinderGeometry(.035, .075, .42, 6); stem.rotateZ(tilt); stem.rotateX(tilt * .6); stem.translate(sx, .21, sz);
+    leafParts.push(tinted(stem, '#5f9a52')); stem.dispose();
+  }
+  const crown = new THREE.SphereGeometry(.12, 8, 6); crown.scale(1.3, .55, 1.3); crown.translate(0, .06, 0);
+  leafParts.push(tinted(crown, '#4f8f45')); crown.dispose();
   const frondGeo = mergeParts(leafParts);
-  const frondMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .72, side: THREE.DoubleSide });
+  const frondMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .62, metalness: 0, side: THREE.DoubleSide, normalMap: leafNormal(), normalScale: new THREE.Vector2(.75, .75) });
   const fernSpots = [];
   for (let i = 0; i < 95; i++) {
     const x = dx - 20 + rr() * 36;
@@ -288,7 +328,6 @@ export function buildDinoDetail({ scene, add, dx = 378, rnd }) {
   fernSpots.forEach(([x, z, s, a], i) => {
     pos.set(x, 0, z); q.setFromAxisAngle(up, a); scl.set(s, s, s);
     mtx.compose(pos, q, scl); ferns.setMatrixAt(i, mtx);
-    ferns.setColorAt(i, C.set(['#a7e29e', '#98d994', '#b4e8aa'][i % 3]));
   });
   ferns.castShadow = false; ferns.receiveShadow = true; group.add(ferns);
 

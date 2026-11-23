@@ -13,7 +13,8 @@ Every completed stage is committed and pushed to `main` automatically.
 | 4 | Castle throne room detail; carpet trim raised above z-fight range | `0246790` | 21 tests, build, single-frame A/B, room audit clean |
 | 5 | Toy Town detail (toy-box spill, giant balls, spinning tops) | `039752b` | 21 tests, build, single-frame A/B |
 | 6 | World-wide lighting/atmosphere, dino skin & vegetation, playhouse furniture, rail-clearing fixes | `35f321c` | 21 tests, build, screenshots, 0 page errors |
-| 7 | Sculpted hill/mountain geometry, fractured layered rocks, top-bar overflow fix, rail-corridor sweep | this commit | 21 tests, build, 2 paired screenshots, toolbar measured |
+| 7 | Sculpted hill/mountain geometry, fractured layered rocks, top-bar overflow fix, rail-corridor sweep | `9fc41c7` | 21 tests, build, 2 paired screenshots, toolbar measured |
+| 8 | Real geometry on the foreground models: Dottie, broad-leaf plants, Ferris wheel, carousel ponies, castle facade | this commit | 21 tests, build, 8 paired screenshots (castle, Toy Town, Dino Valley, Park), audit clean, per-model geometry measured |
 
 ## Graphics improvements
 
@@ -68,6 +69,41 @@ All additions are additive decoration: no collision entries, no changes to rides
   `before-dino.jpg` / `after-dino.png`, identical teleports (x 150, x 368), 1280×720, same lighting. The
   "before" files are the committed stage-6 build; "after" is this build.
 
+### Stage 8 — the foreground models are real models now
+
+The backdrop got its landforms in stage 7; this stage rebuilds the things the camera actually looks at.
+
+- **Dottie the long-neck is a lofted creature, not a stack of spheres.** Her body is a single mesh through ten
+  real cross-sections (heavy hips, narrow waist, deep chest, shoulders), resampled three times per section for a
+  smooth silhouette. The top is kept flat at y 3.45 so the existing walking platform and the neck slide still line
+  up exactly; the cream belly blends into the teal flanks and the darker back as vertex colour, so the separate
+  belly sphere and the five stuck-on flavour spots are gone. Her legs are lathe-turned columns with a knee bulge,
+  a padded foot and **three clawed toes each** (one merged mesh, one draw call, replacing four cylinders and four
+  balls). Twelve dorsal scutes run along the spine and three flank bumps sit where the old spots were. The head
+  gained brow ridges over the eyes, nostrils, a rounded jaw under the muzzle and a crest scute — all merged.
+- **Broad leaves have thickness, a midrib and an arch.** New `broadLeafGeometry()` in `scenery-detail.js` lofts
+  each blade through a grid of vertices: tapered base, fullest a third along, pointed tip, cupped edges, a raised
+  centre rib and a tip that droops below the stalk, with a base-to-tip colour gradient and UVs so the existing
+  leaf-vein normal map works. The 85 jungle plants in Dino Valley use it (still one instanced mesh, one draw
+  call), and the five palm ferns were rebuilt as a ringed tapered trunk plus nine arching fronds each — one mesh
+  per palm instead of six flat capsules.
+- **The Ferris wheel is a structure, not a disc.** It now has an A-frame with two cross beams, diagonal bracing
+  and cast foot plates; **two parallel rims tied together every 36°** so the wheel is a cage with depth; 20 tapered
+  spokes per face; a bolted hub with two flanges and six axle bolts; and ten gondolas with a bevelled cab, deep
+  tinted windows, a padded bench, a gold foot bar, a scalloped roof with a brass rim and a real hanger arm.
+  The whole ride is 3 merged structure meshes + 10 gondola meshes (13 draws) where the flat version needed 37
+  separate meshes. It is split so the wheel group still rotates and every gondola still hangs upright and carries
+  its seat — the ride logic is untouched.
+- **Carousel ponies are saddled.** Each pony gained a draped blanket, a padded saddle with a raised cantle and
+  pommel, stirrups hanging on leathers and brass collars on its pole — one merged mesh per pony, so +6 draws in
+  total, and the seat height (1.36) the ride uses is unchanged.
+- **The castle facade has depth.** A moulded plinth and base course, four engaged pilasters with bases, caps and
+  a carved band, a ring of nine stone voussoirs with a keystone over the door, projecting architraves on all four
+  windows (jambs, sills, hoods, cross mullions), a slim string course under the battlements, and the balcony's
+  plain sticks replaced by eleven turned balusters. Everything is static, so the existing material-batch merge
+  folds it in; the new stonework adds exactly **one material / one draw call** (about 53 small bevelled pieces).
+  The battlements, banners, rose window, flower boxes and climbing roses are untouched and still visible.
+
 ### Measured cost (single-frame A/B, same camera, group visibility only)
 
 | Area | Batches | Geometry triangles | Δ draw calls | Δ triangles |
@@ -80,6 +116,20 @@ All additions are additive decoration: no collision entries, no changes to rides
 | Toy Town | 3 | 5,012 | +3 | +5,012 |
 
 Method: two explicit `renderer.render()` calls with `renderer.info.reset()` between them, group visible then hidden. Reading `renderer.info` while the frame loop runs is unreliable at ~1.2 fps under software WebGL — slice merging and grass streaming change totals between reads, and produced inverted results in earlier runs.
+
+### Stage 8 measured cost (whole object groups, same probe on both builds)
+
+| Model | Before | After | Change |
+|---|---|---|---|
+| Ferris wheel (`G.wheel.group`, incl. 10 gondolas) | 37 meshes / 14,080 tris | 14 meshes / 24,708 tris | **−23 meshes**, +10,628 tris |
+| Carousel (`G.carousel.group`, incl. 6 pony kits) | 97 meshes / 113,972 tris | 103 meshes / 122,612 tris | +6 meshes, +8,640 tris |
+| Dino Valley ferns (85 instanced plants) | 124 tris each / 10,540 total | 512 tris each / 43,520 total | +32,980 tris, **same 1 draw call** |
+| Castle facade stonework | — | ~53 pieces in 1 new material batch | **+1 draw call** |
+
+Probe: traverse the named group on the running game and sum `index.count/3` (× instance count for
+`InstancedMesh`), run against both the committed stage-7 build and this build in the same headless session.
+Scene-level totals (e.g. 198 calls / 393 k tris at the castle) are **not** used as an A/B: slice streaming and
+LOD depend on the live player state, so they move between runs by more than the models changed.
 
 ## Overlapping objects, duplicates and collision problems
 
@@ -102,20 +152,67 @@ Method: two explicit `renderer.render()` calls with `renderer.info.reset()` betw
 
 - `node tests/spatial.test.mjs` — 8/8 pass.
 - `node tests/scene-audit.test.mjs` — 13/13 pass.
-- `npm run build` — succeeds, `index.html` ~9.9 MB.
-- Headless load — 0 page errors.
-- Stage 7 screenshots: 1280×720, park and Dino Valley, 0 page errors; toolbar bounding boxes measured at six widths (see above).
-- Audit — duplicates 0, z-fighting 0, collision entries clean; remaining floor-cut candidates are the known intentional hills.
+- `npm run build` — succeeds, `index.html` 9,930 KB.
+- Headless load (Chromium headless shell + SwiftShader), stage 8 build — **0 page errors, no "Oops" fallback** at x 404 (Castle), 600 (Toy Town), 368 (Dino Valley) and 150 (Park).
+- Stage 8 screenshots: 1280×720, dpr 1, 8 paired images (before/after × Castle, Toy Town, Dino Valley, Park), identical teleports and identical camera settle (waits until the camera stops moving, so the castle zoom cannot bias the pair).
+- Audit (`window.__DDW3.audit()`), stage 8 build: **duplicates 0, z-fighting 0**; solids 12 total with 0 malformed / 0 duplicate / 0 heavy overlaps; platforms 108–112 total, 0 malformed. `buried` reports 4–7 bounding-box candidates per area (spheres and merged buffer geometry — the same class of intentional hills, boulders and urns reported in stage 7); the report exposes only geometry type names, so individual attribution is not possible from the JSON.
 
 ## Remaining issues and unverified work
 
-- **Visual appearance of all new detail is unverified**: headless software WebGL cannot screenshot this scene within a workable timeout. Colours, placement and overlap with existing props still need a real-device look.
-- **Real-device performance** (phones, low-end tablets) is unknown; only geometry/draw-call cost is measured.
-- The audit only sees built scene slices, so numbers depend on where the player is standing.
-- Stage 7 screenshots exist only for Park and Dino Valley; Castle and Toy Town were not re-captured against the final mountains, and the headless Chromium used for capture is missing the emoji font, so HUD icons render as blank tiles in these PNGs (the layout measurement is unaffected).
+- **Real-device performance** (phones, low-end tablets) is still unknown; only geometry/draw-call cost is measured. No FPS claim is made.
+- The audit only sees built scene slices, so counts depend on where the player is standing; sample labels are generic geometry names.
+- Stage 8 screenshots were captured with a headless Chromium that has **no emoji font**, so HUD icons are blank tiles in the evidence PNGs. Layout, camera framing and 3D content are unaffected; install `fonts-noto-color-emoji` before the next capture if a pretty HUD is needed.
+- The headless renderer runs in software (SwiftShader) at roughly 1 fps; it is used for framing and geometry evidence, never for frame-rate claims.
+- Narrow Dino Valley camera at x 368 cuts Dottie's head/neck off at the right edge (same framing as the stage-7 baseline, kept deliberately for comparison). A second camera at x 384 would show the whole animal.
+- The `?nodetail` A/B switch covers the stage 2–7 detail groups, not the stage 8 model rebuilds (those are in-place replacements, measured by group probe instead).
 - Remaining rail-corridor checks are bounding-box based, not a visual pass with the train running.
-- 20 of 26 areas have not had their geometry pass yet.
+- 19 of 26 areas still have no geometry pass; no planet has had one yet.
 
-## In progress / next
+## Resuming after an interruption (exact steps)
 
-Next: re-capture Castle and Toy Town against the final build, then continue geometry/material work in this order: **Lab Gardens → Art Plaza → Sunny Seaside → Whispering Woods → Frosty Peaks → Happy Farm → Ocean Pier → Balloon Hills**, then the planets (Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Pluto), then character/pet material polish. Each stage: implement, build, run tests, measure with the single-frame A/B, update this file, commit and push.
+Build and verify (takes ~1 min + ~1 min):
+
+```bash
+cd discovery-world/3d
+npm ci                       # lockfile is committed; never upgrade deps to restore them
+npm run build                # writes index.html (~9.9 MB, committed)
+node tests/scene-audit.test.mjs && node tests/spatial.test.mjs
+```
+
+Headless capture (no installed browser on a fresh VM):
+
+```bash
+# one-off, outside the repo
+mkdir -p $HOME/capture && cd $HOME/capture && npm init -y && npm i playwright@1.49.1
+npx playwright install chromium-headless-shell   # if the unzip stalls, unzip /tmp/playwright-download-*.zip manually
+# then, from the repo root
+export LD_LIBRARY_PATH="$HOME/.browser-libs/usr/lib/x86_64-linux-gnu:$HOME/.browser-libs/usr/lib"
+export NODE_PATH="$HOME/capture/node_modules"
+node .import-tmp/stage8.cjs '[["after-castle",404],["after-toytown",600]]'
+```
+
+The harness (`.import-tmp/stage8.cjs`, untracked) waits for the Blender landmark GLBs, waits until the camera
+stops moving, then screenshots 1280×720 and prints a model-group probe. For a "before" image, export the previous
+commit and build it elsewhere, then point `HTML=` at it:
+
+```bash
+mkdir -p /tmp/before && git archive HEAD discovery-world/3d | tar -x -C /tmp/before
+cd /tmp/before/discovery-world/3d && ln -s <repo>/discovery-world/3d/node_modules node_modules && npm run build
+HTML=/tmp/before/discovery-world/3d/index.html node .import-tmp/stage8.cjs '[["before-castle",404]]'
+```
+
+## In progress / next (stage 9 onward)
+
+1. **Lab Gardens** (next): real planter beds with kerbs and soil depth, a proper greenhouse/lab equipment set
+   (beakers as lathed glass with rims, racks, pipes with elbows), and edge/fence geometry — geometry first, not
+   extra flora. Verify with the same headless pair and the audit.
+2. **Art Plaza**, then **Sunny Seaside** (shoreline terrain, rocks, pier planks), **Whispering Woods**,
+   **Frosty Peaks**, **Happy Farm**, **Ocean Pier**, **Balloon Hills**.
+3. **Planets** in order Moon → Mercury → Venus → Mars → Jupiter → Saturn → Uranus → Pluto: crater rims and ejecta
+   rays, layered regolith colours, ring geometry, cloud bands; reuse the loft/vertex-colour helpers from stage 7/8.
+4. **Characters and pets:** material/shape pass only (no rig changes) — fur shell tuning, eye catches, bevels.
+5. Re-capture with an emoji font installed so the HUD in the evidence PNGs is complete.
+6. Then run a real-device pass (iPhone Safari / Android Chrome) before any frame-rate claim.
+
+Each stage: implement, build, run both test files, capture a paired screenshot set with the harness above,
+run the audit, update this file, commit and `cloud_git push` to `main` of `dawsons-world-test` only.

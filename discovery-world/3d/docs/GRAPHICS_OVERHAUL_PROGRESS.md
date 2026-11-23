@@ -227,3 +227,27 @@ in-game performance monitor.
    record before/after draw calls and triangles in this file.
 5. Profile on a real iPhone/Android before claiming frame-rate targets; software WebGL cannot
    establish 30/60 FPS.
+
+## Stage 8 — foreground models rebuilt (Dottie, broad leaves, Ferris wheel, carousel, castle facade)
+
+Scope: the largest objects the camera actually looks at, rebuilt as geometry rather than decorated.
+
+- **Dottie:** body lofted through 10 cross-sections (flattened walkable back kept at y 3.45), belly→flank→back
+  vertex colours in one mesh; lathe-turned legs with knee bulge, padded feet and three clawed toes; 12 dorsal
+  scutes; brow ridges, nostrils, jaw and crest on the head. Old body sphere + belly ball + 5 spots removed.
+- **Broad-leaf plants:** new `broadLeafGeometry()` (cupped blade, midrib, drooping tip, base→tip colour, UVs for
+  the vein normal map). 85 instanced jungle plants, 512 tris each (was 124). Palms: ringed trunk + 9 arching
+  fronds, one mesh each (was 6 flat capsules per palm).
+- **Ferris wheel:** A-frame with bracing and feet, double rim cage tied every 36°, 20 spokes per face, flanged
+  bolted hub, and 10 detailed gondolas. 37 meshes → 14, 14,080 → 24,708 tris.
+- **Carousel:** blanket, padded saddle, cantle/pommel, leathers, stirrups and brass pole collars per pony,
+  merged to one mesh per pony (+6 meshes, +8,640 tris). Seat height unchanged.
+- **Castle facade:** plinth, base course, four pilasters, nine voussoirs + keystone, window architraves with
+  sills/hoods/mullions, string course, eleven turned balcony balusters. Static, so it merges: +1 material draw.
+
+Evidence: `docs/screenshots/stage8/` — before/after pairs at x 404 (Castle), 600 (Toy Town), 368 (Dino Valley),
+150 (Park), 1280×720, same camera. Audit clean (0 duplicates, 0 z-fighting, collision 0 malformed/0 heavy
+overlaps). No FPS claim: software WebGL only.
+
+Next: Lab Gardens geometry pass, then Art Plaza, Sunny Seaside, Whispering Woods, Frosty Peaks, Happy Farm,
+Ocean Pier, Balloon Hills, then the planets in order Moon → … → Pluto, then character/pet material polish.
