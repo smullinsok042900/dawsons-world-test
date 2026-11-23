@@ -28,8 +28,11 @@ remove it here and record it in `DEVELOPMENT_LOG.md`. Add new findings (bugs, id
   drifts, two terrace shelves): 6 meshes / 10,616 tris, audit 0 z-fighting, screenshots in `docs/screenshots/stage16/`.
 - **Done:** Stage 17 — Adventure Trail (bridge handrails, two stratified cliffs, waterfall with basin and mist, lookout
   deck): 5 meshes / 2,512 tris, audit 0 z-fighting, screenshots in `docs/screenshots/stage17/`.
-- **Exact next task:** Stage 18 — Playhouse: stage curtains and footlights, a prop chest, hanging lanterns and a
-  cushioned reading nook; capture before/after at x 70 and 90, run `node tools/audit.cjs 70 90`, then sync the same PR.
+- **Done:** Stage 18 — Playhouse (curtained stage with backdrop and six footlights, prop chest, reading nook with
+  pillows and book box, two lanterns): `playhouse-detail` 17 meshes / 3,588 tris, audit 0 z-fighting, screenshots in
+  `docs/screenshots/stage18/`.
+- **Exact next task:** Stage 19 — Studio: easel wall with drying canvases, a pottery wheel with finished pots and a
+  paint-splattered workbench; capture at x 62 and 80, run `node tools/audit.cjs 62 80`, then sync the same PR.
 - **Tooling now available (2026-11-23):** `@gltf-transform/cli` 4.5.1 is a devDependency; KTX-Software `ktx`
   v4.4.2 is at `~/ktx/bin` (ETC1S/Basis verified on `tree_0.glb`, output valid `KHR_texture_basisu`); Blender
   4.2.3 LTS runs headless from `~/blender-4.2.3-linux-x64` with user-space libs. KTX2 is **not** wired into
