@@ -1,0 +1,77 @@
+{
+  "url": "file:///workspace/chats/239bbbd65cda24ad89787673/discovery-world/3d/index.html",
+  "shots": [
+    {
+      "name": "mars-approach",
+      "x": 10,
+      "info": {
+        "calls": 54,
+        "tris": 101516,
+        "geos": 1309,
+        "progs": 148
+      },
+      "models": {
+        "mars": {
+          "meshes": 41,
+          "tris": 101562
+        },
+        "ground": {
+          "meshes": 1,
+          "tris": 59440
+        }
+      }
+    },
+    {
+      "name": "mars-rover-dustdevil",
+      "x": 56,
+      "info": {
+        "calls": 69,
+        "tris": 108946,
+        "geos": 1321,
+        "progs": 149
+      },
+      "models": {
+        "mars": {
+          "meshes": 133,
+          "tris": 170132
+        },
+        "ground": {
+          "meshes": 1,
+          "tris": 59440
+        }
+      }
+    },
+    {
+      "name": "mars-canyon",
+      "x": 104,
+      "info": {
+        "calls": 62,
+        "tris": 103330,
+        "geos": 1326,
+        "progs": 149
+      },
+      "models": {
+        "mars": {
+          "meshes": 133,
+          "tris": 170132
+        },
+        "ground": {
+          "meshes": 1,
+          "tris": 59440
+        }
+      }
+    }
+  ],
+  "models": {
+    "mars": {
+      "meshes": 41,
+      "tris": 101562
+    },
+    "ground": {
+      "meshes": 1,
+      "tris": 59440
+    }
+  },
+  "errors": [],
+  "oops": false
+}

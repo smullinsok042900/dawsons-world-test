@@ -46,9 +46,17 @@ remove it here and record it in `DEVELOPMENT_LOG.md`. Add new findings (bugs, id
   cones, tessera highlands, branching lava channels, glowing fumaroles, volcanic-plain palette): ground mesh 1 mesh /
   49,660 tris, whole place 35 meshes / 129,200 tris, audit 0 z-fighting at 12/40/70/120, screenshots in
   `docs/screenshots/stage23/`.
-- **Exact next task:** Stage 24 — Mars (dust-devil and rock-field detail, ice-cap and canyon atmosphere, layered
-  ochre palette); capture with `node tools/capture.cjs docs/screenshots/stage24 '[[…,…]]' --place mars`, run both
-  tests and `node tools/audit.cjs --place mars …`, then sync the same PR.
+- **Done:** Stage 24 — Mars (220x84 terrain grid with two canyons and three stepped terraced buttes, layered ochre
+  palette, ten dust-capped boulder clusters with grit aprons, three drifting translucent dust-haze sheets): ground
+  mesh 1 mesh / 59,440 tris, whole place 41 meshes / 101,562 tris, frame 54 calls / 101,516 tris at the approach,
+  rover and dust devil re-verified live, audit 0 z-fighting at 12/40/70/120, screenshots in
+  `docs/screenshots/stage24/`.
+- **Done (measurement + trim):** Venus at the approach was 57 draw calls / 133,830 tris with 43,200 of them in the
+  six cloud sheets; three wider billows per cluster and an 8x5 ball for the far sheets cut the clouds to 22,992 and
+  the frame to 113,622 tris, same draw calls and silhouette.
+- **Exact next task:** Stage 25 — Jupiter (Great Red Spot storm detail, banded cloud deck with depth, four moon
+  discs and their own surfaces); capture with `node tools/capture.cjs docs/screenshots/stage25 '[[…,…]]' --place
+  jupiter`, run both tests and `node tools/audit.cjs --place jupiter …`, then sync the same PR.
 - **Tooling now available (2026-11-23):** `@gltf-transform/cli` 4.5.1 is a devDependency; KTX-Software `ktx`
   v4.4.2 is at `~/ktx/bin` (ETC1S/Basis verified on `tree_0.glb`, output valid `KHR_texture_basisu`); Blender
   4.2.3 LTS runs headless from `~/blender-4.2.3-linux-x64` with user-space libs. KTX2 is **not** wired into
