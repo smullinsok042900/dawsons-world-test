@@ -1,0 +1,19 @@
+{
+  "url": "file:///workspace/chats/239bbbd65cda24ad89787673/discovery-world/3d/index.html",
+  "shots": [
+    {
+      "name": "jupiter-moons",
+      "x": 150,
+      "info": {
+        "calls": 37,
+        "tris": 189922,
+        "geos": 1330,
+        "progs": 137
+      },
+      "models": {}
+    }
+  ],
+  "models": {},
+  "errors": [],
+  "oops": false
+}

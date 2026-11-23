@@ -1,0 +1,77 @@
+{
+  "url": "file:///workspace/chats/239bbbd65cda24ad89787673/discovery-world/3d/index.html",
+  "shots": [
+    {
+      "name": "jupiter-approach",
+      "x": 12,
+      "info": {
+        "calls": 58,
+        "tris": 98754,
+        "geos": 1312,
+        "progs": 148
+      },
+      "models": {
+        "ground": {
+          "meshes": 1,
+          "tris": 20832
+        },
+        "place": {
+          "meshes": 45,
+          "tris": 96216
+        }
+      }
+    },
+    {
+      "name": "jupiter-bands",
+      "x": 72,
+      "info": {
+        "calls": 59,
+        "tris": 96814,
+        "geos": 1323,
+        "progs": 149
+      },
+      "models": {
+        "ground": {
+          "meshes": 1,
+          "tris": 20832
+        },
+        "place": {
+          "meshes": 86,
+          "tris": 116736
+        }
+      }
+    },
+    {
+      "name": "jupiter-redspot",
+      "x": 44,
+      "info": {
+        "calls": 68,
+        "tris": 99228,
+        "geos": 1331,
+        "progs": 149
+      },
+      "models": {
+        "ground": {
+          "meshes": 1,
+          "tris": 20832
+        },
+        "place": {
+          "meshes": 86,
+          "tris": 116736
+        }
+      }
+    }
+  ],
+  "models": {
+    "ground": {
+      "meshes": 1,
+      "tris": 20832
+    },
+    "place": {
+      "meshes": 45,
+      "tris": 96216
+    }
+  },
+  "errors": [],
+  "oops": false
+}

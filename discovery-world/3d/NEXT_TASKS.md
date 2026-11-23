@@ -54,9 +54,16 @@ remove it here and record it in `DEVELOPMENT_LOG.md`. Add new findings (bugs, id
 - **Done (measurement + trim):** Venus at the approach was 57 draw calls / 133,830 tris with 43,200 of them in the
   six cloud sheets; three wider billows per cluster and an 8x5 ball for the far sheets cut the clouds to 22,992 and
   the frame to 113,622 tris, same draw calls and silhouette.
-- **Exact next task:** Stage 25 — Jupiter (Great Red Spot storm detail, banded cloud deck with depth, four moon
-  discs and their own surfaces); capture with `node tools/capture.cjs docs/screenshots/stage25 '[[…,…]]' --place
-  jupiter`, run both tests and `node tools/audit.cjs --place jupiter …`, then sync the same PR.
+- **Done:** Stage 25 — Jupiter (168x62 banded deck whose height follows the belts and zones, four rows of band-aligned
+  cloud banks, a four-layer domed Great Red Spot with raised spiral arcs and eddies, four moons painted at 256 with
+  their own light, lower, rounder wisps): ground mesh 1 mesh / 20,832 tris, whole place 45 meshes / 96,216 tris, frame
+  58 calls / 98,754 tris at the approach, moon and storm taps verified live, audit 0 z-fighting at 12/44/72/120,
+  screenshots in `docs/screenshots/stage25/`.
+- **Done (Venus re-check):** the trimmed cloud deck re-captured at the approach and both walking views — 57 calls /
+  113,622 tris, deck still reads as a continuous bank, so no near-sheet detail was restored (`docs/screenshots/venus-recheck/`).
+- **Exact next task:** Stage 26 — Saturn (ring geometry and gap detail, banded cloud deck with depth, hexagon storm);
+  capture with `node tools/capture.cjs docs/screenshots/stage26 '[[…,…]]' --place saturn`, run both tests and
+  `node tools/audit.cjs --place saturn …`, then sync the same PR.
 - **Tooling now available (2026-11-23):** `@gltf-transform/cli` 4.5.1 is a devDependency; KTX-Software `ktx`
   v4.4.2 is at `~/ktx/bin` (ETC1S/Basis verified on `tree_0.glb`, output valid `KHR_texture_basisu`); Blender
   4.2.3 LTS runs headless from `~/blender-4.2.3-linux-x64` with user-space libs. KTX2 is **not** wired into

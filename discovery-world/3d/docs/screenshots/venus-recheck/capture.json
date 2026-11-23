@@ -1,0 +1,77 @@
+{
+  "url": "file:///workspace/chats/239bbbd65cda24ad89787673/discovery-world/3d/index.html",
+  "shots": [
+    {
+      "name": "venus-approach",
+      "x": 12,
+      "info": {
+        "calls": 57,
+        "tris": 113622,
+        "geos": 1310,
+        "progs": 148
+      },
+      "models": {
+        "ground": {
+          "meshes": 1,
+          "tris": 49660
+        },
+        "place": {
+          "meshes": 35,
+          "tris": 108992
+        }
+      }
+    },
+    {
+      "name": "venus-deck-walk",
+      "x": 64,
+      "info": {
+        "calls": 60,
+        "tris": 109098,
+        "geos": 1321,
+        "progs": 148
+      },
+      "models": {
+        "ground": {
+          "meshes": 1,
+          "tris": 49660
+        },
+        "place": {
+          "meshes": 101,
+          "tris": 168588
+        }
+      }
+    },
+    {
+      "name": "venus-deck-look",
+      "x": 96,
+      "info": {
+        "calls": 57,
+        "tris": 122010,
+        "geos": 1325,
+        "progs": 149
+      },
+      "models": {
+        "ground": {
+          "meshes": 1,
+          "tris": 49660
+        },
+        "place": {
+          "meshes": 101,
+          "tris": 168588
+        }
+      }
+    }
+  ],
+  "models": {
+    "ground": {
+      "meshes": 1,
+      "tris": 49660
+    },
+    "place": {
+      "meshes": 35,
+      "tris": 108992
+    }
+  },
+  "errors": [],
+  "oops": false
+}
