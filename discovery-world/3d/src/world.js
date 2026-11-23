@@ -17,6 +17,7 @@ import { plush, quadSpec } from './critterkit.js';
 import { USE_ASSETS, cobbleSet, landmarksReady } from './assets.js';
 import { macroVariation } from './refine.js';
 import { snowTextures, sandTextures, lawnTextures, cobbleTextures, leafNormal, leafDetail, barkTextures, plasterNormal, scatterNature, grassField, makeTree, makeRock, terrainH, fabricMat } from './nature.js';
+import { buildPlayhouseDetail, buildParkDetail } from './scenery-detail.js'; // (overhaul) area detail
 const STATION_XS = STATIONS.map(s => s.x);
 
 export const RAINBOW = ['#ff4f9a', '#ff9a2e', '#ffc21c', '#36c96b', '#2fa8ff', '#5b6cff', '#a15cff', '#ff7ad9'];
@@ -178,6 +179,9 @@ export function buildWorld(G) {
   // CLIMBING BLOCKS pyramid with a secret star on top
   [[38, 1.2], [39.6, 2.4], [41.2, 3.6], [42.8, 2.4], [44.4, 1.2]].forEach(([x, h], i) => { block(x, 0, -.4, 1.5, h, 2, RAINBOW[i * 2 % 8], { r: .2 }); plat(x - .75, x + .75, h); solid(x - .75, x + .75, h); });
 
+  // (overhaul) extra props for the Playhouse: a woven rug, a ceiling of bunting and paper lanterns.
+  if (!/[?&]nodetail/.test(location.search)) G.playhouseDetail = buildPlayhouseDetail({ scene, add }); // (?nodetail = A/B measurement)
+
   // =================== IMAGINATION STUDIO ===================
   // GIANT PAINT WALL (you paint on it with your finger)
   const pc = document.createElement('canvas'); pc.width = 1400; pc.height = 560; const pg = pc.getContext('2d');
@@ -237,6 +241,8 @@ export function buildWorld(G) {
   const leafMats = ['#5f9f50', '#6fae5a', '#548f4b', '#80b862'].map(c => new THREE.MeshPhysicalMaterial({ color: c, map: leafDetail().map, roughness: .8, sheen: .5, sheenColor: new THREE.Color('#e4f7c0'), normalMap: leafDetail().normal, normalScale: new THREE.Vector2(.7, .7) }));
   const tree = (x, z, s = 1) => makeTree(scene, x, z, s); // build 15: real branching trees
   [[139, -10.5], [152, -5], [170, -4.2], [178, -5.5], [201, -10.5], [223, -5.2], [238, -5.6], [249, -5], [256, -4.4], [262.5, -9], [274, -13.4], [283, -14], [292, -13.2], [300, -10.5], [270, -1.6], [312, -4.6], [319, -5.4], [345, -5], [351, -4.2], [308, -13], [338, -12]].forEach(([x, z], i) => tree(x, z, 1 + (i % 2) * .3)); // (build 64: the trees at 138 and 200 stood inside rainbow arches: moved back)
+  // (overhaul) extra props for the Park: wildflower drifts, sculpted boulders and lamp posts.
+  if (!/[?&]nodetail/.test(location.search)) G.parkDetail = buildParkDetail({ scene, add, terrainH }); // (?nodetail = A/B measurement)
   // GRASS (build 15): real blades in clumps, swaying in the wind (in chunks so off-screen grass isn't drawn)
   G.grassTime = { value: 0 };
   const offWalk = (x, z) => Math.abs(z) < 1.75 || (z > 2.2 && z < 4.3); // (build 64: never on the path or the train track)

@@ -50,6 +50,21 @@ t('stacked surfaces far enough apart are not reported', () => {
   assert.equal(auditScene({ scene }).zfight.count, 0);
 });
 
+t('fur shells (skinned meshes sharing one geometry) are not duplicates', () => {
+  const scene = new THREE.Scene();
+  const geo = new THREE.BoxGeometry(1, 1, 1);
+  for (let i = 0; i < 6; i++) { const m = mesh(geo, [0, .5, 0]); m.isSkinnedMesh = true; scene.add(m); }
+  assert.equal(auditScene({ scene }).duplicates.count, 0);
+});
+
+t('wide flat hill masses are not reported as props cutting the floor', () => {
+  const scene = new THREE.Scene();
+  const hill = mesh(new THREE.SphereGeometry(1, 12, 8), [0, -3, 0]);
+  hill.scale.set(30, 10, 14); hill.updateMatrixWorld(true);
+  scene.add(hill);
+  assert.equal(auditScene({ scene }).buried.count, 0);
+});
+
 t('two instanced sets sharing a geometry are not duplicates', () => {
   const scene = new THREE.Scene();
   const geo = new THREE.BoxGeometry(1, 1, 1);

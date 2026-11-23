@@ -9,7 +9,7 @@ Working repository: `smullinsok042900/dawsons-world-test` (this repo). The origi
 |---|---|
 | 1. Audit of rendering / placement / performance systems | **Done for the shared engine** (renderer, world, nature, water, assets, perf). Per-environment visual audit still outstanding. |
 | 2. Shared engine improvements | **First stage done and verified**: collision spatial index, scene auditor, texture filtering, water ripple/reflection upgrade. |
-| 3. Per-environment visual overhaul | **Not started** (see inventory below). |
+| 3. Per-environment visual overhaul | **Started**: Playhouse + Park detail added (2 of 26 areas). |
 | 4. Geometry / collision corrections | **Tooling done and run**; confirmed issues not yet fixed (see audit results). |
 | 5. Performance optimisation | **Collision indexing done**; renderer/LOD tuning outstanding. |
 | 6. Verification | Unit tests (17) + build + headless load/audit run pass. Full browser suite is not re-run every stage (35 min of software WebGL). |
@@ -39,19 +39,46 @@ surface. This affects all four water bodies (two seas, the stream, the pier sea)
 was captured: headless software WebGL cannot screenshot this scene within a usable timeout, so
 the visual result is unverified until it is looked at on a real device.
 
-## What the auditor found in the real scene (final run, build 122)
+## What the auditor found, and the triage (build 122)
 
 - **z-fighting: 0** confirmed opaque coplanar surfaces.
 - **collision entries: clean** — 12 solids, 108 platforms, 0 malformed, 0 duplicates,
   0 heavy overlaps.
-- **6 duplicate-transform candidates** at one spot near the slide tower (x≈22.4, y≈4.28):
-  6 meshes share one geometry and one transform. Not yet identified or fixed; needs one
-  focused inspection (start at `world.js` slide-tower block).
-- **15 floor-cutting candidates**, all large spheres starting at y≈−13 (e.g. x 443, 494, 525).
-  They look like intentional large environment volumes, not props sinking into the floor;
-  not moved.
-- Earlier false positives (layer-1 shadow proxies, transparent contact-shadow decals, tree
-  roots 0.2 m into the soil, instanced sets sharing geometry) are now excluded by the auditor.
+- **duplicates: 0 after triage.** The 6 reported meshes were **fur shells**: `fur.js` adds 5–8
+  `SkinnedMesh` shells per furry creature, all sharing the creature's geometry and transform,
+  each with its own fur material. A live probe confirmed the group's parent chain ended in a
+  skinned creature, not scenery. The auditor now ignores skinned meshes, sprites, points/lines
+  and the off-world shader-rehearsal group (y ≈ −60). No meshes needed moving or deleting.
+- **floor-cutting candidates: triaged, none moved.** A live probe listed every candidate with
+  position, size and parent: 11 wide sphere masses at x 430–897 (rolling hills, deliberately
+  sunk), the headland at x −158, the sky domes (800 m / 1040 m spheres), the slide tube and its
+  torus ring, the ball-pit shell and the underground shaft wall. All are intentional terrain or
+  structures. The auditor now skips wide terrain masses and any mesh marked
+  `userData.grounded`; the new boulders use that flag. Remaining candidates are the same known
+  intentional hills.
+
+## Stage 2: Playhouse and Park detail (implemented, measured)
+
+New `src/scenery-detail.js`, called from `world.js`; additive only, no collision entries, no
+changes to gameplay. `?nodetail` disables it for measurement.
+
+- **Playhouse:** a 3.3 m woven play rug, 72 bunting flags across the ceiling, three hanging
+  paper lanterns with cords.
+- **Park:** 190 wildflowers in two drifts (instanced stems + instanced flower heads with
+  per-instance colours), 3 sculpted boulder clusters (9 rocks merged into one mesh), and six
+  lamp posts with glowing globes (merged posts + instanced globes).
+
+Measured by toggling only the new groups' visibility in one loaded scene (the only reliable
+method here — different page loads vary by ±300k triangles because grass/slice streaming
+settles differently):
+
+| Area | Added meshes | Added triangles (geometry) | In-scene Δ draw calls | In-scene Δ triangles |
+|---|---|---|---|---|
+| Playhouse | 8 | 1,376 | **+3** | **+488** |
+| Park | 5 | 48,692 | **+6** | **+51,368** |
+
+Park triangles rise ~7% for ~190 flowers, 9 boulders and 6 lamps; draw calls rise by 6 because
+merged/instanced geometry keeps the additions to a handful of batches. Playhouse is +3 calls.
 
 ## Environment inventory (for the visual pass)
 
@@ -61,7 +88,8 @@ Frosty Peaks, Whispering Woods, Sunny Seaside, Balloon Hills.
 Other worlds: Sky Kingdom, Underground caves, Fluffkin House interior, Moon, Mercury, Venus,
 Mars, Jupiter, Saturn, Uranus, Neptune, Pluto.
 
-None of these have had their individual geometry/materials upgraded yet.
+Upgraded so far: **Playhouse** and **Park** (Stage 2 detail above). All other areas still need
+ their individual geometry/material pass.
 
 ## How to verify a change
 
@@ -77,9 +105,9 @@ in-game performance monitor.
 
 ## Immediate continuation plan (next session)
 
-1. Run `window.__DDW3.audit()` and fix any confirmed floor-cutting props / coplanar opaque surfaces.
-2. Add per-area measurement (draw calls, triangles) and reduce the worst areas with LOD/merge.
-3. Begin Phase 3 in this order (highest traffic first): Playhouse → Park → Castle → Dino Valley →
+1. Audit is clean; keep running `window.__DDW3.audit()` after each area and fix real findings.
+2. Continue Phase 3 in this order: Playhouse (detail done, materials/terrain next) → Park (detail
+   done) → Castle → Dino Valley →
    Toy Town → seaside/ocean → each planet (Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus,
    Neptune, Pluto).
 4. For each area: add geometry detail (terrain relief, rocks, vegetation), PBR material work, and

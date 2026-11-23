@@ -58,7 +58,7 @@ export function auditScene({ scene, solids = [], platforms = [], maxSamples = 6 
     // transparent decals (contact shadows, glows, water) overlap by design
     const opaque = !(mat && (mat.transparent || mat.depthWrite === false));
     meshes.push({
-      o, info, instanced: !!o.isInstancedMesh,
+      o, info, instanced: !!o.isInstancedMesh, skinned: !!o.isSkinnedMesh, sprite: !!o.isSprite, points: !!o.isPoints, line: !!o.isLine,
       name: o.name || (mat && mat.name) || (o.geometry && o.geometry.type) || o.type,
       geometryKey: o.geometry ? (o.geometry.uuid || '') : '',
       matrixKey: keyForMatrix(o.matrixWorld),
@@ -74,7 +74,10 @@ export function auditScene({ scene, solids = [], platforms = [], maxSamples = 6 
   for (const m of meshes) {
     // InstancedMesh places its copies inside instanceMatrix, not in matrixWorld: two instanced sets sharing
     // one geometry at the origin are normal, so they are not compared here.
-    if (!m.geometryKey || m.instanced) continue;
+    // Skinned meshes deliberately share one geometry between fur shells; sprites/points/lines share their geometry
+    // by design; the off-world shader rehearsal group sits at y=-60.
+    if (!m.geometryKey || m.instanced || m.skinned || m.sprite || m.points || m.line) continue;
+    if (m.info.center.y < -30) continue;
     const k = m.geometryKey + '|' + m.matrixKey;
     const prev = transformSeen.get(k);
     if (prev) { if (duplicateTransforms.length < max) duplicateTransforms.push({ name: m.name, at: [+m.info.center.x.toFixed(2), +m.info.center.y.toFixed(2), +m.info.center.z.toFixed(2)] }); }
@@ -104,9 +107,13 @@ export function auditScene({ scene, solids = [], platforms = [], maxSamples = 6 
   let buriedCount = 0;
   for (const m of meshes) {
     if (!(m.info.minY < -.3 && m.info.maxY > .4)) continue;
+    // Wide, flat-topped masses are the rolling hills/headlands: deliberate terrain, not props in the floor.
+    if (m.info.size.x > m.info.size.y * 2 || m.info.size.z > m.info.size.y * 2) continue;
+    if (m.skinned || m.sprite || m.points || m.line) continue;
     let p = m.o.parent, underground = false;
     while (p) { const n = (p.name || '').toLowerCase(); if (n.includes('under') || n.includes('sea') || n.includes('cave')) { underground = true; break; } p = p.parent; }
     if (underground || m.dynamic || !m.opaque) continue;
+    if (m.o.userData && m.o.userData.grounded) continue; // deliberately seated props (rocks, roots)
     buriedCount++;
     if (buried.length < max) buried.push({ name: m.name, minY: +m.info.minY.toFixed(2), x: +m.info.center.x.toFixed(1) });
   }
