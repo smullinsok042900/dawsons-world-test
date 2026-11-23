@@ -49,6 +49,8 @@ import { LOD, makeTree } from './nature.js';
 import { LOWSTATS } from './assets.js';
 import { SCULPT_STATS } from './sculpt.js';
 import { FUR } from './fur.js';
+import { makeIntervalIndex } from './spatial.js'; // (overhaul) indexed collision lookups
+import { auditScene } from './scene-audit.js'; // (overhaul) automated geometry/placement validation
 
 const $ = id => document.getElementById(id);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -173,7 +175,7 @@ let creature = null;
 // soft contact shadow on the ground under the creature (shrinks and fades as it jumps)
 const shadowMat = new THREE.MeshBasicMaterial({ map: G.aoTex, transparent: true, depthWrite: false, opacity: 1, polygonOffset: true, polygonOffsetFactor: -4 });
 const blob = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.1), shadowMat); blob.rotation.x = -Math.PI / 2; blob.renderOrder = 3; blob.userData.dynamic = true; /* (build 33: it follows you; never part of a scenery slice) */ scene.add(blob);
-function groundUnder(x, y) { if (player.layer === 'sea') return SEA.floor; let g = y > UG.ceil + .05 && !inShaftX(x) ? 0 : player.layer === 'in' ? 0 : UG.floor; if (player.layer === 'in' && y >= IN.f2 - .05) g = IN.f2; for (const z of G.platforms) if (z.layer === player.layer && x >= z.a && x <= z.b && z.y <= y + .01 && z.y > g) g = z.y; return g; }
+function groundUnder(x, y) { if (player.layer === 'sea') return SEA.floor; let g = y > UG.ceil + .05 && !inShaftX(x) ? 0 : player.layer === 'in' ? 0 : UG.floor; if (player.layer === 'in' && y >= IN.f2 - .05) g = IN.f2; for (const z of platformIndex.query(G.platforms, x, player.layer, frameNow)) if (z.layer === player.layer && x >= z.a && x <= z.b && z.y <= y + .01 && z.y > g) g = z.y; return g; }
 function setCreature(kind) {
   if (creature) { scene.remove(creature.root); freeLater(creature.root); } /* (build 107: free the old friend: it used to stay on the graphics chip) */
   player.creature = kind; creature = makeCreature(kind, { body: (world.styles || {})[kind] }); scene.add(creature.root); wear(creature.parts, kind, (world.wear || {})[kind]); /* (build 101: her outfit for this friend) */
@@ -1025,6 +1027,11 @@ $('sparkleBtn').addEventListener('pointerdown', e => { e.preventDefault(); world
 
 // ---------------- physics ----------------
 const GRAV = 24;
+// (overhaul) O(buckets) collision lookups instead of scanning every solid/platform 60 times a second.
+// Runtime-changing entries (doors, squish walls) carry a `key` and are always returned by the index.
+const solidIndex = makeIntervalIndex(), platformIndex = makeIntervalIndex();
+G.spatial = { solids: solidIndex, platforms: platformIndex };
+let frameNow = 0; // one clock reading per frame, shared by the collision queries
 function bounds() { const P = player; return P.layer === 'space' && G.spaceBounds ? G.spaceBounds : P.layer === 'sea' ? [SEA.ox + .6, SEA.ox + SEA.w - .6] : P.layer === 'in' ? [IN.ox + .8, IN.ox + IN.w - .8] : P.layer === 'castle' ? [G.castleIn.ox + .8, G.castleIn.ox + G.castleIn.w - .8] : P.y < UG.ceil - .1 ? [UG.x0 + .6, UG.x1 - .6] : [EXP.xMin, EXP.x1]; }
 function updatePlayer(dt) {
   const P = player;
@@ -1047,7 +1054,7 @@ function updatePlayer(dt) {
   const top = (swim ? (P.layer === 'sea' ? 3.6 : 2.2) : crawl ? 3.4 : 5.8) * keys.scale, accel = P.grounded ? 62 : 30; /* (build 25: snappier start and stop) */ if (P.driftT > 0 && !h && !P.grounded) { P.driftT -= dt; P.vx = P.drift; } else { P.driftT = 0; P.vx += clamp(h * top - P.vx, -accel * dt, accel * dt); }
   const [x1, x2] = bounds(); const ox = P.x; P.x = clamp(P.x + P.vx * dt, x1, x2); if (P.x <= x1 || P.x >= x2) P.vx = 0;
   // solid things: you can't walk through them. Low ones (up to 1.25 high) you hop up onto by yourself.
-  for (const s of G.solids) {
+  for (const s of solidIndex.query(G.solids, P.x, P.layer, frameNow)) {
     if (s.layer !== P.layer || P.y >= s.top - .02 || P.y + 1.4 <= (s.bottom ?? 0)) continue;
     const L = s.a - .35, Rr = s.b + .35;
     if (P.x > L && P.x < Rr) {
@@ -1064,7 +1071,7 @@ function updatePlayer(dt) {
   P.y += P.vy * dt; P.grounded = false;
   // land on the HIGHEST surface you reach (so a bouncy puff on top of a cloud wins over the cloud)
   let land = null, landStep = false;
-  if (P.vy <= 0) for (const z of G.platforms) {
+  if (P.vy <= 0) for (const z of platformIndex.query(G.platforms, P.x, P.layer, frameNow)) {
     if (z.layer !== P.layer || P.x < z.a || P.x > z.b) continue;
     const stepUp = z.step && wasG && z.y > oldY - .01 && z.y - oldY < (z.stepMax || .5);
     if (((oldY >= z.y - .02 && P.y <= z.y) || stepUp) && (!land || z.y > land.y)) { land = z; landStep = stepUp; }
@@ -1404,7 +1411,7 @@ function step(dt) {
 }
 function frame() {
   frameStarted = true;
-  const frameT0 = performance.now();
+  const frameT0 = performance.now(); frameNow = frameT0;
   { const now = performance.now(); if (lastFrameAt && perfMon && !G.activityOpen) perfMon.frame(now - lastFrameAt, now); lastFrameAt = now; } // (build 26: monitor: a few numbers per frame)
   if (G.activityOpen) { requestAnimationFrame(frame); return; } // (build 25: a learning game is open: the 3D world sleeps)
   checkSize(frameT0);
@@ -1557,7 +1564,26 @@ function sliceScenery() {
 }
 G.unslice = o => { if (o && o.parent && o.parent.userData.slice) scene.attach(o); }; // (something that starts to follow you leaves its slice)
 function updateSlices() { for (const g of slices) { const near = Math.abs(g.userData.x - camT.x) < 52; if (near && !g.parent) scene.add(g); else if (!near && g.parent) scene.remove(g); } }
-const begin = () => { if (begun) return; begun = true; G.startupMs = Math.round(performance.now()); try { sliceScenery(); mergeSlices(); updateSlices(); } catch (e) { console.log('slices skipped', e); } renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = true; requestAnimationFrame(frame); if (needPortraits) setTimeout(() => { try { portraits = renderPortraits(); localStorage.setItem(PORTRAIT_KEY, JSON.stringify(portraits)); } catch (e) { } applyPortraits(); }, 60); setTimeout(() => $('loading').classList.add('done'), 250); };
+// (overhaul) TEXTURE QUALITY: use the device's anisotropic filtering everywhere it matters. Cobbles, lawn, roof
+// tiles and painted walls are seen at grazing angles for most of the game; without anisotropy those textures blur
+// into mush a few metres away. One pass over the materials at start-up (no per-frame cost, no extra memory).
+function applyTextureQuality() {
+  const maxA = Math.min(8, Math.max(1, renderer.capabilities.getMaxAnisotropy() || 1));
+  const keys = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap', 'alphaMap', 'clearcoatNormalMap', 'sheenColorMap'];
+  const seenM = new Set(), seenT = new Set();
+  scene.traverse(o => {
+    const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
+    for (const m of ms) {
+      if (!m || seenM.has(m.uuid)) continue; seenM.add(m.uuid);
+      for (const k of keys) {
+        const t = m[k]; if (!t || seenT.has(t.uuid)) continue; seenT.add(t.uuid);
+        if ((t.anisotropy || 1) < maxA) { t.anisotropy = maxA; t.needsUpdate = true; }
+      }
+    }
+  });
+  G.textureQuality = { anisotropy: maxA, textures: seenT.size, materials: seenM.size };
+}
+const begin = () => { if (begun) return; begun = true; G.startupMs = Math.round(performance.now()); try { sliceScenery(); mergeSlices(); updateSlices(); } catch (e) { console.log('slices skipped', e); } try { applyTextureQuality(); } catch (e) { } renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = true; requestAnimationFrame(frame); if (needPortraits) setTimeout(() => { try { portraits = renderPortraits(); localStorage.setItem(PORTRAIT_KEY, JSON.stringify(portraits)); } catch (e) { } applyPortraits(); }, 60); setTimeout(() => $('loading').classList.add('done'), 250); };
 // (build 24) shaders: compile everything in the scene before play starts (the light count is now fixed, so these stay
 // valid), then compile the model files' materials as soon as they arrive (in the background where the phone supports
 // parallel compiling), so nothing compiles the first time it comes into view.
@@ -1686,8 +1712,10 @@ Promise.race([Promise.all([assetsReady, landmarksReady]), new Promise(r => setTi
 // Do not end loading before shader rehearsal; the asset wait above already has a timeout.
 
 // debug/test hook (used by the automated tests only)
-window.__DDW3 = { THREE,
+window.__DDW3 = { THREE, scene,
   player, world, keys, fluffs, G, camera, Sound, save, IN, renderer, FR: THREE.Frustum, LOWSTATS, SCULPT_STATS,
+  // (overhaul) automated geometry/placement audit, run on demand only (never in the frame loop)
+  audit: () => auditScene({ scene, solids: G.solids, platforms: G.platforms }),
   teleport(x, y = 0) { player.ride = null; player.stair = null; player.layer = x >= 2000 ? 'castle' : x >= 1000 ? 'in' : ''; player.x = x; player.y = y; player.vx = player.vy = 0; player.grounded = y === 0; snapCamera(); },
   toScreen(x, y, z = 0) { V.set(x, y, z).project(camera); const r = canvas.getBoundingClientRect(); return { x: (V.x + 1) / 2 * r.width + r.left, y: (1 - V.y) / 2 * r.height + r.top }; },
   pick(cx, cy) { pointerRay({ clientX: cx, clientY: cy }); return ray.intersectObjects([creature.root, ...G.taps], true).filter(h=>isVisibleTarget(h.object,scene)).slice(0, 4).map(h => { let o = h.object, n = 0; while (o && !o.userData.tap && !o.userData.creature) { o = o.parent; n++; } return [h.object.type, h.distance.toFixed(2), o ? (o.userData.creature ? 'creature' : 'tap') : 'none', h.object.position.x.toFixed(1), o ? (o.name || Object.keys(o.userData).join('/')) : '', (() => { let r = h.object; while (r.parent && r.parent !== scene && !r.parent.userData.slice) r = r.parent; return r.name || r.type + '@' + r.position.x.toFixed(1); })()]; }); },
