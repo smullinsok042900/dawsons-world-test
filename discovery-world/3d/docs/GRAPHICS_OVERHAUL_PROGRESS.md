@@ -249,5 +249,28 @@ Evidence: `docs/screenshots/stage8/` — before/after pairs at x 404 (Castle), 6
 150 (Park), 1280×720, same camera. Audit clean (0 duplicates, 0 z-fighting, collision 0 malformed/0 heavy
 overlaps). No FPS claim: software WebGL only.
 
-Next: Lab Gardens geometry pass, then Art Plaza, Sunny Seaside, Whispering Woods, Frosty Peaks, Happy Farm,
-Ocean Pier, Balloon Hills, then the planets in order Moon → … → Pluto, then character/pet material polish.
+## Stage 9 — Lab Gardens: glazed greenhouses, real beds, a potting lab
+
+Scope: the district's three bare pastel half-spheres and an empty lawn.
+
+- **Greenhouses are buildings:** drum wall with footing course, six scaled hoop ribs, sill ring and brass finial;
+  framed arched door (jambs, half-round arch, panelled leaf with porthole, brass handle, stone threshold) built
+  outside the pane so nothing intersects it. The panes are now genuinely glazed (`opacity .26`, `depthWrite false`,
+  `renderOrder 3`), so the interior reads.
+- **Beds with depth:** five exterior beds between the domes and two raised beds inside each dome — stone kerbs
+  proud of the grass, soil recessed 9 cm, two soil ridges, rows of three-leaf sprouts with blooms. Interior beds
+  raised to 1.02 m so planting shows above the drum through the glass.
+- **Edging:** picket fences (posts, two rails, pickets) around three beds.
+- **Potting lab:** two-tier bench, lathed beaker with lip/spout, second beaker, conical flask (each with liquid),
+  five-tube wooden rack, microscope, and a copper supply pipe with elbows, collars, floor stands and a spoked
+  brass valve wheel.
+- **Cost:** 5 meshes / 28,320 triangles / +4 draw calls, one streamed group (`labgarden-detail`).
+
+Evidence: `docs/screenshots/stage9/` — `before-labgarden.png` (stage-8 build) / `after-labgarden.png` at x 695,
+`after-labbench.png` at x 771, `close-dome.png`, `close-bench.png`, and `rides/` (Dottie's back and slide, carousel
+seat front/side). Audit clean (0 duplicates, 0 z-fighting, 0 malformed / 0 heavy collision entries). Ride sweep
+found one real placement bug: the Ferris wheel seat sat 0.59 m above the stage-8 gondola bench and now sits on it.
+No FPS claim: software WebGL only.
+
+Next: Art Plaza, Sunny Seaside, Whispering Woods, Frosty Peaks, Happy Farm, Ocean Pier, Balloon Hills, then the
+planets in order Moon → … → Pluto, then character/pet material polish.

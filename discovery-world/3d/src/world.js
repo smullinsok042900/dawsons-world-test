@@ -383,7 +383,8 @@ export function buildWorld(G) {
     const pivot = new RoundedBoxGeometry(.52, .09, .18, 1, .05); parts.push(tintGeo(pivot, '#ffd84a'));
     const shell = new THREE.Mesh(mergeMixed(parts), cabM);
     shell.castShadow = shell.receiveShadow = true; g.add(shell); parts.forEach(x => x.dispose());
-    const seat = new THREE.Object3D(); seat.position.set(0, -.35, .2); g.add(seat);
+    // (stage 9) the rider stands on the padded bench, not in mid-air above it: the seat sits on the bench top
+    const seat = new THREE.Object3D(); seat.position.set(0, -.94, .26); g.add(seat);
     gondolas.push({ g, seat, i });
   }
   G.wheel = { group: fw, wheel, gondolas, angle: 0, r: 6.4 };

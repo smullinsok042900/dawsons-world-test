@@ -14,7 +14,8 @@ Every completed stage is committed and pushed to `main` automatically.
 | 5 | Toy Town detail (toy-box spill, giant balls, spinning tops) | `039752b` | 21 tests, build, single-frame A/B |
 | 6 | World-wide lighting/atmosphere, dino skin & vegetation, playhouse furniture, rail-clearing fixes | `35f321c` | 21 tests, build, screenshots, 0 page errors |
 | 7 | Sculpted hill/mountain geometry, fractured layered rocks, top-bar overflow fix, rail-corridor sweep | `9fc41c7` | 21 tests, build, 2 paired screenshots, toolbar measured |
-| 8 | Real geometry on the foreground models: Dottie, broad-leaf plants, Ferris wheel, carousel ponies, castle facade | this commit | 21 tests, build, 8 paired screenshots (castle, Toy Town, Dino Valley, Park), audit clean, per-model geometry measured |
+| 8 | Real geometry on the foreground models: Dottie, broad-leaf plants, Ferris wheel, carousel ponies, castle facade | `5c899a8` | 21 tests, build, 8 paired screenshots (castle, Toy Town, Dino Valley, Park), audit clean, per-model geometry measured |
+| 9 | Lab Gardens: glazed greenhouses on drum walls with doors and ribs, raised beds with soil depth, edging fences, potting bench with lathed glassware and copper plumbing; ride/climb placement sweep; capture harness committed | this commit | 21 tests, build, paired screenshots (Lab Gardens), 5 close-ups, 4 ride close-ups, audit clean, `labgarden-detail` measured |
 
 ## Graphics improvements
 
@@ -104,6 +105,47 @@ The backdrop got its landforms in stage 7; this stage rebuilds the things the ca
   folds it in; the new stonework adds exactly **one material / one draw call** (about 53 small bevelled pieces).
   The battlements, banners, rose window, flower boxes and climbing roses are untouched and still visible.
 
+### Stage 9 — Lab Gardens: a real garden, not three bare domes
+
+- **The greenhouses are buildings now.** Each glass half-sphere sits on a drum wall with a stone footing course,
+  six external hoop ribs (scaled with the dome), a sill ring and a brass finial. The front carries a framed
+  **arched door** — sage jambs, a half-round arch, a panelled leaf with a porthole window and a brass handle, and
+  a stone threshold — standing just outside the glass, so no part of it intersects the pane.
+- **The domes are really glazed** (`opacity .26`, `depthWrite false`, `renderOrder 3`) instead of a solid pastel
+  shell, so what is inside is the point: two raised beds per dome, kerb walls, sunken dark soil and rows of tall
+  planting with coloured blooms, seen through the panes.
+- **Beds have real depth.** Five beds fill the gaps between the domes: stone kerb walls proud of the grass, soil
+  recessed 9 cm below the rim (a visible edge, not a brown plane), two soil ridges and rows of three-leaf sprouts
+  with blooms. Interior beds are raised to 1.02 m so the planting shows above the drum through the glass.
+- **Picket fencing** edges three of the beds (posts, two rails, closely spaced pickets) so the beds read as a
+  garden rather than boxes on a lawn.
+- **A potting bench that reads as a lab.** Two-tier wooden bench with glassware built as real lathes — a beaker
+  with a wall, lip and spout, a second smaller beaker, a conical flask — each holding coloured liquid; a wooden
+  test-tube rack with five tubes and five liquids; a microscope (foot, arm, angled tube, eyepiece, stage); and a
+  **copper supply pipe** with elbow bends, collars, floor stands and a spoked brass valve wheel running from the
+  bench to the far greenhouse.
+- Everything static merges into three vertex-coloured meshes (paint, glass, copper); leaves and blooms are two
+  instanced meshes. The district gains **4 draw calls**, and the whole detail is one streamed group
+  (`labgarden-detail`) built with the rest of the neighbourhood, so nothing is added to the always-loaded pass.
+
+### Ride and climb placement sweep (before stage 9 turned the page)
+
+Close-ups in `discovery-world/3d/docs/screenshots/stage9/rides/`, 1100×800, software WebGL, camera pinned with
+`G.camOverride`:
+
+- **Dottie's back and neck slide — no regression.** The walking platform is still exactly y 3.45, the lofted body
+  clamps its vertices to 3.435 (a 1.5 cm tolerance under the feet), the dorsal scutes sit 12 cm below the surface,
+  the tail steps still meet the back edge and the slide still starts at y 3.45 / x 379.45. `dino-back.png` and
+  `dino-side.png` show her standing on the back with no clipping.
+- **Carousel seat — no regression.** Seat height is unchanged at 1.36, now on the stage-8 saddle pad (top 1.32);
+  her feet land between the cantle (x −0.30) and the pommel (x +0.27), the pole passes in front of her legs and
+  the stirrups hang below her feet. `carousel-ride.png` / `carousel-front.png`.
+- **Ferris wheel seat — one real placement bug found and fixed.** The seat was at y −0.35 inside the stage-8 cab,
+  but the new bench top is at −0.94, so the rider floated 0.59 m above the bench and passed through the roof.
+  The seat now sits on the bench at (0, −0.94, 0.26), which also puts her inside the cab instead of through its
+  roof. The gondola is still a closed cabin, so on the ride she is mostly hidden inside it; opening the sides is
+  left as a later art choice, not a regression from stage 8.
+
 ### Measured cost (single-frame A/B, same camera, group visibility only)
 
 | Area | Batches | Geometry triangles | Δ draw calls | Δ triangles |
@@ -131,6 +173,21 @@ Probe: traverse the named group on the running game and sum `index.count/3` (× 
 Scene-level totals (e.g. 198 calls / 393 k tris at the castle) are **not** used as an A/B: slice streaming and
 LOD depend on the live player state, so they move between runs by more than the models changed.
 
+### Stage 9 measured cost (streamed district group)
+
+| Group | Meshes | Triangles |
+|---|---|---|
+| `labgarden-detail` (paint: domes' walls, ribs, doors, beds, fences, bench, microscope, rack) | 1 | 9,284 |
+| `labgarden-detail` glassware (lathed beakers/flask/tubes) | 1 | 772 |
+| `labgarden-detail` copper pipework | 1 | 740 |
+| `labgarden-detail` leaves (instanced, 606 leaves) | 1 | 14,544 |
+| `labgarden-detail` blooms (instanced, 101 blooms) | 1 | 2,020 |
+| **Total** | **5 meshes** | **28,320** |
+
+The greenhouse panes were already in the district (3 meshes); they were re-materialled, not duplicated. Whole-scene
+reads at x 695 were 90 calls / 332–407 k triangles across runs (streaming and the transparent pass move the total),
+which is why the named-group probe is the number quoted here.
+
 ## Overlapping objects, duplicates and collision problems
 
 - **The 6 "duplicate meshes" near the slide tower were fur shells**, not duplicated scenery: `fur.js` adds 5–8 `SkinnedMesh` shells per furry creature sharing one geometry and transform. Nothing was moved. The auditor now skips skinned meshes, sprites, points/lines and the off-world rehearsal group.
@@ -152,21 +209,24 @@ LOD depend on the live player state, so they move between runs by more than the 
 
 - `node tests/spatial.test.mjs` — 8/8 pass.
 - `node tests/scene-audit.test.mjs` — 13/13 pass.
-- `npm run build` — succeeds, `index.html` 9,930 KB.
-- Headless load (Chromium headless shell + SwiftShader), stage 8 build — **0 page errors, no "Oops" fallback** at x 404 (Castle), 600 (Toy Town), 368 (Dino Valley) and 150 (Park).
-- Stage 8 screenshots: 1280×720, dpr 1, 8 paired images (before/after × Castle, Toy Town, Dino Valley, Park), identical teleports and identical camera settle (waits until the camera stops moving, so the castle zoom cannot bias the pair).
-- Audit (`window.__DDW3.audit()`), stage 8 build: **duplicates 0, z-fighting 0**; solids 12 total with 0 malformed / 0 duplicate / 0 heavy overlaps; platforms 108–112 total, 0 malformed. `buried` reports 4–7 bounding-box candidates per area (spheres and merged buffer geometry — the same class of intentional hills, boulders and urns reported in stage 7); the report exposes only geometry type names, so individual attribution is not possible from the JSON.
+- `npm run build` — succeeds, `index.html` 9,937 KB.
+- Headless load (Chromium headless shell + SwiftShader), stage 9 build — **0 page errors, no "Oops" fallback** at x 695 (Lab Gardens) and 771 (potting bench); the ride sweep also loaded cleanly at the carousel, the Ferris wheel and Dino Valley.
+- Stage 9 screenshots: 1280×720, dpr 1, `before-labgarden.png` (stage-8 build) and `after-labgarden.png` (this build) at x 695, `after-labbench.png` at x 771, `close-dome.png` and `close-bench.png` from a pinned inspection camera, and four ride/climb close-ups in `rides/`. Camera settle is waited on for every shot.
+- Audit (`window.__DDW3.audit()`) at x 724, stage 9 build: **duplicates 0, z-fighting 0**; solids 12 (0 malformed / 0 duplicate / 0 heavy overlaps); platforms 115 (0 malformed). `buried` reports 3–5 bounding-box candidates (the same intentional hills/terrain class as stages 7–8); the report exposes only geometry type names, so individual attribution is not possible from the JSON.
+- Model probe (`labgarden-detail`): **5 meshes / 28,320 triangles** (paint 9,284, glassware 772, copper 740, leaves 14,544 across 606 instances, blooms 2,020 across 101).
 
 ## Remaining issues and unverified work
 
-- **Real-device performance** (phones, low-end tablets) is still unknown; only geometry/draw-call cost is measured. No FPS claim is made.
+- **Real-device performance** (phones, low-end tablets) is still unknown; only geometry/draw-call cost is measured. No FPS claim is made. Stage 9 adds 28.3 k triangles to one streamed district (5 draws), the largest single-district addition so far, so it is the first thing to trim if a phone struggles.
 - The audit only sees built scene slices, so counts depend on where the player is standing; sample labels are generic geometry names.
 - Stage 8 screenshots were captured with a headless Chromium that has **no emoji font**, so HUD icons are blank tiles in the evidence PNGs. Layout, camera framing and 3D content are unaffected; install `fonts-noto-color-emoji` before the next capture if a pretty HUD is needed.
 - The headless renderer runs in software (SwiftShader) at roughly 1 fps; it is used for framing and geometry evidence, never for frame-rate claims.
 - Narrow Dino Valley camera at x 368 cuts Dottie's head/neck off at the right edge (same framing as the stage-7 baseline, kept deliberately for comparison). A second camera at x 384 would show the whole animal.
 - The `?nodetail` A/B switch covers the stage 2–7 detail groups, not the stage 8 model rebuilds (those are in-place replacements, measured by group probe instead).
 - Remaining rail-corridor checks are bounding-box based, not a visual pass with the train running.
-- 19 of 26 areas still have no geometry pass; no planet has had one yet.
+- The Ferris gondola is a closed cabin: the rider now stands correctly on its bench (seat at −0.94) but is still
+  mostly hidden inside it during the ride. Opening the sides is an art decision for a later pass, not a bug.
+- 18 of 26 areas still have no geometry pass; no planet has had one yet.
 
 ## Resuming after an interruption (exact steps)
 
@@ -179,34 +239,38 @@ npm run build                # writes index.html (~9.9 MB, committed)
 node tests/scene-audit.test.mjs && node tests/spatial.test.mjs
 ```
 
-Headless capture (no installed browser on a fresh VM):
+Headless capture (the harness is committed; `npm ci` already installs its only dependency, Playwright):
 
 ```bash
-# one-off, outside the repo
-mkdir -p $HOME/capture && cd $HOME/capture && npm init -y && npm i playwright@1.49.1
-npx playwright install chromium-headless-shell   # if the unzip stalls, unzip /tmp/playwright-download-*.zip manually
-# then, from the repo root
-export LD_LIBRARY_PATH="$HOME/.browser-libs/usr/lib/x86_64-linux-gnu:$HOME/.browser-libs/usr/lib"
-export NODE_PATH="$HOME/capture/node_modules"
-node .import-tmp/stage8.cjs '[["after-castle",404],["after-toytown",600]]'
+cd discovery-world/3d
+npx playwright install chromium-headless-shell    # one-off ~90 MB browser download, never committed
+node tools/capture.cjs docs/screenshots/stage9 '[["after-labgarden",695],["after-labbench",771]]' \
+  --probes '{"lab":"D.scene.getObjectByName(\"labgarden-detail\")"}'
 ```
 
-The harness (`.import-tmp/stage8.cjs`, untracked) waits for the Blender landmark GLBs, waits until the camera
-stops moving, then screenshots 1280×720 and prints a model-group probe. For a "before" image, export the previous
-commit and build it elsewhere, then point `HTML=` at it:
+On a bare Linux VM add the browser's system libraries with `npx playwright install-deps chromium` (the
+`LD_LIBRARY_PATH` export used on this VM is only needed when those libraries live outside the default path).
+Probe expressions are evaluated with `D` = `window.__DDW3`, so `D.G.wheel.group` or
+`D.scene.getObjectByName('dino-detail')`; they run after every shot because streamed detail groups only exist
+once the player is near. `WARMUP`, `SETTLE`, `WIDTH`, `HEIGHT`, `HTML` and `LOG` are documented in the file
+header. The harness waits for the Blender landmark GLBs and until the camera stops easing before each shot.
+
+For a "before" image, build the previous commit elsewhere and point `HTML=` at it:
 
 ```bash
-mkdir -p /tmp/before && git archive HEAD discovery-world/3d | tar -x -C /tmp/before
-cd /tmp/before/discovery-world/3d && ln -s <repo>/discovery-world/3d/node_modules node_modules && npm run build
-HTML=/tmp/before/discovery-world/3d/index.html node .import-tmp/stage8.cjs '[["before-castle",404]]'
+rm -rf /tmp/before && mkdir -p /tmp/before
+git archive <commit> discovery-world/3d | tar -x -C /tmp/before
+ln -s "$PWD/discovery-world/3d/node_modules" /tmp/before/discovery-world/3d/node_modules
+(cd /tmp/before/discovery-world/3d && npm run build)
+HTML=/tmp/before/discovery-world/3d/index.html node discovery-world/3d/tools/capture.cjs docs/screenshots/stage9 '[["before-castle",404]]'
 ```
 
-## In progress / next (stage 9 onward)
+## In progress / next (stage 10 onward)
 
-1. **Lab Gardens** (next): real planter beds with kerbs and soil depth, a proper greenhouse/lab equipment set
-   (beakers as lathed glass with rims, racks, pipes with elbows), and edge/fence geometry — geometry first, not
-   extra flora. Verify with the same headless pair and the audit.
-2. **Art Plaza**, then **Sunny Seaside** (shoreline terrain, rocks, pier planks), **Whispering Woods**,
+1. **Art Plaza** (next): give the painted plaza real geometry — a tiled mosaic floor with grout depth, easels
+   with stretched canvases, a real mosaic wall, brush/paint-pot clutter and gallery frames — rather than more
+   flat colour planes. Verify with the committed harness pair and the audit.
+2. Then **Sunny Seaside** (shoreline terrain, rocks, pier planks), **Whispering Woods**,
    **Frosty Peaks**, **Happy Farm**, **Ocean Pier**, **Balloon Hills**.
 3. **Planets** in order Moon → Mercury → Venus → Mars → Jupiter → Saturn → Uranus → Pluto: crater rims and ejecta
    rays, layered regolith colours, ring geometry, cloud bands; reuse the loft/vertex-colour helpers from stage 7/8.

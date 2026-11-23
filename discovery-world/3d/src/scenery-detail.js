@@ -61,6 +61,18 @@ function tinted(geo, hex) {
   return g;
 }
 
+/** merge indexed and non-indexed pieces (lathes are non-indexed) into one geometry */
+function mergeMixed(parts) {
+  if (!parts.length) return null;
+  const nonIndexed = parts.some(g => !g.index);
+  const made = [];
+  const list = nonIndexed ? parts.map(g => { if (!g.index) return g; const n = g.toNonIndexed(); made.push(n); return n; }) : parts;
+  let one = null;
+  try { one = mergeGeometries(list, false); } catch (e) { one = null; }
+  made.forEach(g => g.dispose()); parts.forEach(g => g.dispose());
+  return one;
+}
+
 /** merge a list of geometries into one, disposing the pieces (null if they cannot merge) */
 function mergeParts(parts) {
   if (!parts.length) return null;
@@ -537,6 +549,180 @@ export function buildToyTownDetail({ add }) {
   tops.castShadow = true; tops.receiveShadow = true; group.add(tops);
 
   return { group, added: { blocks: 8, balls: ballSpots.length, tops: 4 } };
+}
+
+// ===================================================================
+// (stage 9) LAB GARDENS: the three greenhouses were bare glass half-spheres
+// floating on the lawn, and the garden had no beds at all. Now each dome sits
+// on a real drum wall with a door, a threshold and hoop ribs; raised planter
+// beds (stone kerb, sunken soil, sprouting rows) fill the gaps between them and
+// line the inside of every dome; a picket fence edges the beds; and a potting
+// bench carries lathed glassware, a flask, a test-tube rack, a microscope and a
+// copper supply pipe with elbows and a valve. Everything static is merged into
+// four meshes (paint, glass, copper, leaves/blooms instanced), so the whole
+// district gains four draw calls.
+// ===================================================================
+export function buildLabGardenDetail({ add }) {
+  const group = new THREE.Group(); group.name = 'labgarden-detail'; add(group);
+  const painted = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .6 });
+  const glassM = new THREE.MeshPhysicalMaterial({ vertexColors: true, roughness: .05, metalness: 0, transparent: true, opacity: .34, clearcoat: 1, side: THREE.DoubleSide });
+  const metalM = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .35, metalness: .55 });
+
+  const DOMES = [682, 724, 766], DZ = -11, R = 5, DRUM = .92;
+  const wallParts = [], glassParts = [], pipeParts = [];
+  const leafSpots = [], bloomSpots = [];
+  const BLOOMS = ['#ff8fc8', '#ffd23f', '#a98bff', '#ff6f6f', '#7fd8ff'];
+  const addBox = (parts, hex, w, h, d, x, y, z, ry = 0) => { const g = new THREE.BoxGeometry(w, h, d); if (ry) g.rotateY(ry); g.translate(x, y, z); parts.push(tinted(g, hex)); g.dispose(); };
+  const addCyl = (parts, hex, ra, rb, h, x, y, z, seg = 12, rot) => { const g = new THREE.CylinderGeometry(ra, rb, h, seg); if (rot) { g.rotateX(rot[0] || 0); g.rotateZ(rot[2] || 0); } g.translate(x, y, z); parts.push(tinted(g, hex)); g.dispose(); };
+  const addBeam = (parts, hex, a, b, r) => {
+    const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b), len = A.distanceTo(B);
+    const g = new THREE.CylinderGeometry(r, r, len, 8);
+    g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), B.clone().sub(A).normalize()));
+    g.translate((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2);
+    parts.push(tinted(g, hex)); g.dispose();
+  };
+
+  // ---- raised planter bed: stone kerb with real depth, soil sunk 9 cm below the rim, sprouting rows
+  function bed(cx, cz, w, d, { top = .42, kerb = '#e2d8c9', rows = 2, tall = false } = {}) {
+    addBox(wallParts, kerb, w + .26, top, .18, cx, top / 2, cz - d / 2);
+    addBox(wallParts, kerb, w + .26, top, .18, cx, top / 2, cz + d / 2);
+    addBox(wallParts, kerb, .18, top, d, cx - w / 2, top / 2, cz);
+    addBox(wallParts, kerb, .18, top, d, cx + w / 2, top / 2, cz);
+    addBox(wallParts, '#6b4a34', w, top - .09, d, cx, (top - .09) / 2, cz);
+    // two soil ridges, so the bed reads as dug earth rather than a brown slab
+    for (const oz of [-d * .22, d * .22]) addCyl(wallParts, '#7d5941', d * .09, d * .09, w - .3, cx, top - .02, cz + oz, 8, [0, 0, Math.PI / 2]);
+    const per = tall ? Math.max(3, Math.round(w / .72)) : Math.max(3, Math.round(w / .5));
+    for (let i = 0; i < per; i++) for (let r = 0; r < rows; r++) {
+      const x = cx - w / 2 + .34 + (i + .5) * ((w - .68) / per), z = cz + (rows === 1 ? 0 : (r ? 1 : -1) * d * .21);
+      leafSpots.push({ x, y: top - .03, z, s: tall ? 2.3 : 1, rot: (i * 2.4 + r * 1.1) % 6.283, tilt: (i % 3 - 1) * .12, col: i % 3 === 0 ? '#8fd47a' : i % 3 === 1 ? '#6dbb63' : '#a7e29e' });
+      if ((i + r) % 2 === 0) bloomSpots.push({ x: x + .07, y: top + (tall ? .34 : .2), z: z + .04, col: BLOOMS[(i + r * 3) % BLOOMS.length] });
+    }
+  }
+
+  // ---- greenhouses: drum wall with a door gap facing the path, threshold, door posts and lintel, hoop ribs
+  const GAP = .34;
+  for (const cx of DOMES) {
+    const drum = new THREE.CylinderGeometry(R * .976, R * 1.004, DRUM, 48, 1, true, Math.PI / 2 + GAP / 2, Math.PI * 2 - GAP);
+    drum.translate(cx, DRUM / 2, DZ); wallParts.push(tinted(drum, '#f6f8f4')); drum.dispose();
+    // a stone footing course, slightly proud, so the wall does not grow out of the grass
+    addCyl(wallParts, '#d8d2c6', R * 1.02, R * 1.05, .16, cx, .08, DZ, 44);
+    // the door: an arched frame with a panelled leaf, a little round window and a brass handle, standing
+    // just in front of the drum's opening (never through the glass: this spot is outside the dome)
+    const pz = DZ + R + .07, px = .8;
+    for (const s of [-1, 1]) addBox(wallParts, '#8fae94', .13, 1.82, .16, cx + s * px, .91, pz);
+    { const arch = new THREE.TorusGeometry(px + .06, .075, 5, 20, Math.PI); arch.translate(cx, 1.82, pz); wallParts.push(tinted(arch, '#7fae8b')); arch.dispose(); }
+    addBox(wallParts, '#31423a', px * 2 - .02, 1.76, .07, cx, .9, pz - .02);
+    for (const oy of [-.42, 0, .42]) addBox(wallParts, '#3d5349', px * 2 - .26, .05, .03, cx, .9 + oy, pz + .02);
+    { const win = new THREE.CylinderGeometry(.2, .2, .04, 16); win.rotateX(Math.PI / 2); win.translate(cx, 1.42, pz + .04); wallParts.push(tinted(win, '#bfe9f2')); win.dispose(); }
+    addCyl(wallParts, '#ffd23f', .045, .045, .12, cx + px - .18, .92, pz + .06, 8, [Math.PI / 2, 0, 0]);
+    addBox(wallParts, '#cfc6b7', px * 2 + .5, .1, .72, cx, .05, pz + .3);
+    // ribs over the glass, a tie ring at the springing line and a brass finial
+    for (let k = 0; k < 6; k++) {
+      const arc = new THREE.TorusGeometry(R * 1.006, .045, 4, 22, Math.PI);
+      arc.scale(1, .8, 1); arc.rotateY(k / 6 * Math.PI); arc.translate(cx, DRUM, DZ);
+      wallParts.push(tinted(arc, '#7fae8b')); arc.dispose();
+    }
+    { const ring = new THREE.TorusGeometry(R * 1.006, .05, 4, 40); ring.rotateX(Math.PI / 2); ring.translate(cx, DRUM, DZ); wallParts.push(tinted(ring, '#8fae94')); ring.dispose(); }
+    addCyl(wallParts, '#ffd23f', .1, .13, .16, cx, DRUM + R * .8 * 1.006 + .1, DZ, 10);
+    // two long beds inside, visible through the glass above the drum wall
+    bed(cx, DZ - 1.7, 6.4, 1.15, { top: 1.02, kerb: '#d8cdbb', tall: true });
+    bed(cx, DZ + 2.1, 6.4, 1.15, { top: 1.02, kerb: '#d8cdbb', tall: true });
+  }
+
+  // ---- beds between the greenhouses (the gaps the domes leave along the back lawn)
+  bed(703, -8.3, 5.6, 2.1);
+  bed(712.4, -8.3, 5.2, 2.1, { kerb: '#e6dccd' });
+  bed(745, -8.3, 6.2, 2.1);
+  bed(699, -12.6, 3.4, 1.9, { kerb: '#e6dccd' });
+  bed(749, -12.6, 3.4, 1.9);
+
+  // ---- picket fence edging the beds (posts, two rails, pickets)
+  function fence(x0, x1, z, hex = '#fffaf0') {
+    for (let x = x0; x <= x1 + .01; x += 1.24) addBox(wallParts, hex, .1, .72, .1, x, .36, z);
+    addBox(wallParts, hex, x1 - x0, .07, .06, (x0 + x1) / 2, .5, z);
+    addBox(wallParts, hex, x1 - x0, .07, .06, (x0 + x1) / 2, .24, z);
+    for (let x = x0 + .16; x < x1; x += .3) addBox(wallParts, hex, .055, .46, .035, x, .38, z);
+  }
+  fence(696.6, 709.4, -7.05);
+  fence(710.6, 722.6, -7.05);
+  fence(738.4, 751.6, -7.05);
+
+  // ---- potting bench with real glassware, a flask, a test-tube rack, a microscope and a copper pipe
+  const BX = 776.6, BZ = -3.2, TOP = .95;
+  addBox(wallParts, '#c98a52', 2.7, .1, 1.0, BX, TOP, BZ);
+  addBox(wallParts, '#b8723f', 2.5, .06, .82, BX, .38, BZ);
+  for (const ox of [-1.18, 1.18]) for (const oz of [-.4, .4]) addBox(wallParts, '#a8642f', .09, .9, .09, BX + ox, .47, BZ + oz);
+  // beakers: a lathe with a real wall, a lip and a pouring spout, plus coloured liquid inside
+  const lathe = (pts, seg = 16) => new THREE.LatheGeometry(pts.map(([x, y]) => new THREE.Vector2(x, y)), seg);
+  const beaker = (x, r, h, hex) => {
+    const g = lathe([[0, .02], [r * .92, .02], [r, .05], [r, h], [r * 1.08, h + .03], [r * .98, h + .035], [r * .9, h], [r * .9, .07], [0, .07]]);
+    g.translate(x, TOP + .05, BZ - .12); glassParts.push(tinted(g, '#e8fbff')); g.dispose();
+    const l = lathe([[0, .02], [r * .82, .02], [r * .82, h * .62], [0, h * .62]], 12);
+    l.translate(x, TOP + .06, BZ - .12); wallParts.push(tinted(l, hex)); l.dispose();
+  };
+  beaker(BX - .92, .19, .36, '#ff8fc8');
+  beaker(BX - .46, .14, .27, '#7fd8ff');
+  { // conical flask
+    const g = lathe([[0, .02], [.21, .02], [.085, .28], [.06, .34], [.075, .37], [0, .37]], 16);
+    g.translate(BX + .02, TOP + .05, BZ - .1); glassParts.push(tinted(g, '#e8fbff')); g.dispose();
+    const l = lathe([[0, .03], [.17, .03], [.075, .16], [0, .16]], 12);
+    l.translate(BX + .02, TOP + .06, BZ - .1); wallParts.push(tinted(l, '#ffd23f')); l.dispose();
+  }
+  // test-tube rack: five tubes in a wooden block, each with its own colour
+  { const rx = BX + .62, rz = BZ + .12; addBox(wallParts, '#a8642f', .62, .07, .2, rx, TOP + .09, rz);
+    addBox(wallParts, '#c98a52', .64, .05, .22, rx, TOP + .3, rz);
+    ['#ff8fc8', '#7fd8ff', '#ffd23f', '#a98bff', '#8fd47a'].forEach((hex, i) => {
+      const tx = rx - .24 + i * .12;
+      const g = new THREE.CylinderGeometry(.035, .035, .3, 10, 1, true); g.translate(tx, TOP + .27, rz); glassParts.push(tinted(g, '#e8fbff')); g.dispose();
+      const l = new THREE.CylinderGeometry(.027, .027, .16, 8); l.translate(tx, TOP + .2, rz); wallParts.push(tinted(l, hex)); l.dispose();
+    }); }
+  // microscope: foot, arm, angled tube and eyepiece
+  { const mx = BX + 1.02, mz = BZ - .18;
+    addCyl(wallParts, '#5d6a7e', .16, .19, .08, mx, TOP + .07, mz, 16);
+    addBox(wallParts, '#5d6a7e', .1, .42, .1, mx - .09, TOP + .27, mz);
+    addBox(wallParts, '#7c8aa0', .12, .06, .3, mx - .01, TOP + .47, mz);
+    { const tube = new THREE.CylinderGeometry(.055, .07, .34, 12); tube.rotateZ(.42); tube.translate(mx + .12, TOP + .58, mz); wallParts.push(tinted(tube, '#9aa8bd')); tube.dispose(); }
+    addCyl(wallParts, '#2f3b4d', .05, .05, .07, mx + .19, TOP + .74, mz, 10);
+    addCyl(wallParts, '#e8fbff', .06, .06, .03, mx + .04, TOP + .43, mz, 12); }
+  // copper supply pipe: down the bench end, along the ground and up beside the last greenhouse, with elbows and a valve
+  const PX = BX + 1.44;
+  addBeam(pipeParts, '#c98a5a', [PX, TOP - .02, BZ + .3], [PX, .34, BZ + .3], .045);
+  addBeam(pipeParts, '#c98a5a', [PX, .34, BZ + .3], [PX, .34, -5.6], .045);
+  addBeam(pipeParts, '#c98a5a', [PX, .34, -5.6], [771.6, .34, -5.6], .045);
+  addBeam(pipeParts, '#c98a5a', [771.6, .34, -5.6], [771.6, 1.4, -5.6], .045);
+  addBeam(pipeParts, '#c98a5a', [771.6, 1.4, -5.6], [769.6, 1.7, -6.2], .045);
+  for (const [x, y, z] of [[PX, .34, -5.6], [771.6, .34, -5.6], [771.6, 1.4, -5.6]]) addCyl(pipeParts, '#b8763f', .075, .075, .105, x, y, z, 10, [0, 0, 0]);
+  // pipe stands, so the run reads as plumbing and not as a bar floating over the lawn
+  for (const x of [774.2, 772.8]) addCyl(pipeParts, '#8a8f98', .032, .038, .34, x, .17, -5.6, 8);
+  for (const z of [-4.2, -2.4]) addCyl(pipeParts, '#8a8f98', .032, .038, .34, PX, .17, z, 8);
+  addCyl(pipeParts, '#8a8f98', .09, .11, .05, 771.6, .025, -5.6, 10);
+  { const vx = BX + 1.44, vy = .78, vz = BZ - .55; addCyl(pipeParts, '#b8763f', .1, .1, .09, vx, vy, vz, 10, [Math.PI / 2, 0, 0]);
+    const wheel = new THREE.TorusGeometry(.16, .028, 6, 18); wheel.rotateY(Math.PI / 2); wheel.translate(vx, vy, vz); pipeParts.push(tinted(wheel, '#ffd23f')); wheel.dispose();
+    for (let i = 0; i < 3; i++) { const sp = new THREE.BoxGeometry(.02, .3, .022); sp.rotateX(i * Math.PI / 3); sp.translate(vx, vy, vz); pipeParts.push(tinted(sp, '#ffd23f')); sp.dispose(); } }
+
+  const wall = new THREE.Mesh(mergeMixed(wallParts), painted);
+  wall.castShadow = wall.receiveShadow = true; group.add(wall);
+  const glass = new THREE.Mesh(mergeMixed(glassParts), glassM);
+  glass.castShadow = false; glass.receiveShadow = false; glass.renderOrder = 2; group.add(glass);
+  const copper = new THREE.Mesh(mergeMixed(pipeParts), metalM);
+  copper.castShadow = true; copper.receiveShadow = true; group.add(copper);
+
+  // ---- sprouting leaves and blooms: two instanced meshes for every bed in the district
+  const mtx = new THREE.Matrix4(), q = new THREE.Quaternion(), eu = new THREE.Euler(), v = new THREE.Vector3(), s = new THREE.Vector3();
+  const leafGeo = broadLeafGeometry({ len: .27, wid: .16, rise: .12, droop: .04, cup: .04, rib: .014, seg: 4, across: 3 });
+  const leaves = new THREE.InstancedMesh(leafGeo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .68, side: THREE.DoubleSide }), leafSpots.length * 3);
+  let li = 0;
+  for (const sp of leafSpots) for (let k = 0; k < 3; k++) {
+    eu.set(-.34 + sp.tilt, sp.rot + k * 2.09, 0); q.setFromEuler(eu);
+    v.set(sp.x, sp.y, sp.z); s.setScalar(sp.s); mtx.compose(v, q, s);
+    leaves.setMatrixAt(li, mtx); leaves.setColorAt(li, C.set(sp.col)); li++;
+  }
+  leaves.castShadow = true; leaves.receiveShadow = true; group.add(leaves);
+  const blooms = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(.075, 0), new THREE.MeshStandardMaterial({ roughness: .42, clearcoat: .5 }), bloomSpots.length);
+  bloomSpots.forEach((b, i) => { q.setFromEuler(eu.set(0, i * 1.7, 0)); v.set(b.x, b.y, b.z); s.setScalar(.8 + (i % 3) * .14); mtx.compose(v, q, s); blooms.setMatrixAt(i, mtx); blooms.setColorAt(i, C.set(b.col)); });
+  blooms.castShadow = true; group.add(blooms);
+
+  return { group, added: { domes: DOMES.length, beds: 5 + DOMES.length * 2, leaves: li, blooms: bloomSpots.length } };
 }
 
 // ===================================================================

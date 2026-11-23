@@ -17,7 +17,7 @@ import { SPECIES as LIFE, PET_KINDS as LIFE_PETS, creatureMesh, animate as lifeA
 import { PET_PICS } from './pet-pictures.js';
 import { FAMILY_FRIEND_HOMES } from './family-friend-homes.js';
 import { CRAFT_FRIEND_HOMES } from './craft-friend-homes.js';
-import { buildToyTownDetail } from './scenery-detail.js';
+import { buildToyTownDetail, buildLabGardenDetail } from './scenery-detail.js';
 
 export const EXP = { x0: 424, x1: 940, xMin: -830 }; // (build 49: Balloon Hills, past the pier) // (build 43: both ends now lead up stairs into the sky) // (build 30: the world also grows to the LEFT of the Playhouse; build 35: on to the farm)
 export const DISTRICTS = [
@@ -410,8 +410,12 @@ export function initExpansion(G, api) {
       return () => { const events = world.adventures?.events || []; const next = (events.includes('learn_count') && events.includes('learn_plant')) || world.adventures?.completed?.includes('science') === true; if (next === grown) return; grown = next; flowers.forEach(f => { f.visible = grown; }); };
     },
     () => palAtHome(c, 'frog'), // (build 32) Hoppy the frog waits by the pond
-    // greenhouse domes behind
-    () => { for (const x of [682, 724, 766]) { const d = new THREE.Mesh(new THREE.SphereGeometry(5, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), mat('#d9f6ff', { r: .1, cc: .6 })); d.position.set(x, 0, -11); d.scale.y = .8; c.add(d); } },
+    // greenhouse domes behind: raised onto the drum walls and ribs the detail builder adds (stage 9), and now
+    // really glazed, so the raised beds and tall planting inside are visible through the panes
+    () => { const pane = new THREE.MeshPhysicalMaterial({ color: '#eafcff', roughness: .05, metalness: 0, transparent: true, opacity: .26, clearcoat: 1, clearcoatRoughness: .08, side: THREE.DoubleSide, depthWrite: false });
+      for (const x of [682, 724, 766]) { const d = new THREE.Mesh(new THREE.SphereGeometry(5, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), pane); d.position.set(x, .92, -11); d.scale.y = .8; d.renderOrder = 3; c.add(d); } },
+    // (stage 9) planter beds, greenhouse walls/ribs/doors, edging fences and the potting bench
+    () => { G.labGardenDetail = buildLabGardenDetail({ add: c.add }); },
     // a colour-changing pond: tap the water, it changes colour, a fish jumps
     () => { const cols = [['blue', '#3b82f6'], ['pink', '#ff7ac8'], ['green', '#3cc45a'], ['purple', '#9b5cf6'], ['orange', '#ff9a1f'], ['yellow', '#ffd23f']]; const m = mat('#3b82f6', { r: .15, cc: .6 }).clone();
       const pond = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, .08, 40), m); pond.position.set(684, .03, -4.9); /* (build 64: back from the path) */ c.add(pond); const rim = new THREE.Mesh(new THREE.TorusGeometry(3, .25, 10, 40), mat('#b5ab9e', { r: .8 })); rim.rotation.x = Math.PI / 2; rim.position.set(684, .1, -4.9); c.add(rim);
