@@ -12,7 +12,8 @@ Every completed stage is committed and pushed to `main` automatically.
 | 3 | Castle front & Dino Valley detail; `mergeGeometries` helper; auditor ignores merged slabs | `dfc92f6` | 21 tests, build, single-frame A/B, audit clean |
 | 4 | Castle throne room detail; carpet trim raised above z-fight range | `0246790` | 21 tests, build, single-frame A/B, room audit clean |
 | 5 | Toy Town detail (toy-box spill, giant balls, spinning tops) | `039752b` | 21 tests, build, single-frame A/B |
-| 6 | World-wide lighting/atmosphere, dino skin & vegetation, playhouse furniture, rail-clearing fixes | this commit | 21 tests, build, screenshots, 0 page errors |
+| 6 | World-wide lighting/atmosphere, dino skin & vegetation, playhouse furniture, rail-clearing fixes | `35f321c` | 21 tests, build, screenshots, 0 page errors |
+| 7 | Sculpted hill/mountain geometry, fractured layered rocks, top-bar overflow fix, rail-corridor sweep | this commit | 21 tests, build, 2 paired screenshots, toolbar measured |
 
 ## Graphics improvements
 
@@ -37,6 +38,35 @@ All additions are additive decoration: no collision entries, no changes to rides
 - **Rail clearance**: the playhouse rug, park lamps, castle beds/urns and Toy Town balls/tops no longer
   intersect the train corridor at z 3.2. See the table in `discovery-world/3d/docs/GRAPHICS_OVERHAUL_PROGRESS.md`.
 - **Before/after screenshots**: `discovery-world/3d/docs/screenshots/stage6/` (six paired scenes).
+
+### Stage 7 — real geometry in the landscape (not another decoration pass)
+
+- **Hills rebuilt as landforms.** The Adventure Park backdrop used to be 29 smooth spheres squashed flat
+  (`scale.y = .6`) with one flat colour each. Each is now a displaced sphere: three octaves of ridge noise on
+  the radius, a flattened base, baked vertex colours (grass gradient, dry stony crowns, rock scars, shaded
+  feet) and a generated 128 px normal map. All 29 are merged into **one mesh**: 2 draw calls for the whole
+  backdrop where there were 29 meshes.
+- **A distant mountain range behind them** — 8 ridged, snow-capped peaks at z ≈ −136…−160, cool blue with
+  pale caps and aerial haze; one merged mesh, one draw call. The horizon now has layers (hills → peaks → sky)
+  instead of a row of blobs.
+- **Rocks are fractured stone now.** `makeRock` gained a broken-ledge displacement (plane-like fractures plus
+  scree grain), strata colour bands, moss on upward faces and darker wet feet, all as baked vertex colours on
+  the existing icosahedron — no extra material, texture or draw call. This upgrades every rock on every planet.
+- **Top bar no longer runs off the screen.** The old `@media (min-width:900px){#upperRight{max-width:none;flex-wrap:nowrap}}`
+  let the right-hand cluster overflow past the viewport edge (the settings gear was clipped in the Dino Valley
+  shot). The cluster is now width-capped at every size, and pills/creature tiles shrink in two steps (≤1500 px,
+  ≤1150 px). Measured bounding boxes: right edge sits 10 px inside the viewport at 1440×900, 1280×720,
+  1152×648, 1024×576, 820×480 and 700×400 (overflow −10 px everywhere).
+- **Train-corridor sweep.** A browser-side audit walked every mesh in the built world, took world-space
+  bounding boxes and flagged anything crossing z 2.6–3.8 below y 2.6: 70 boxes. Every one resolves to a known
+  legitimate fixture or a bounding-box artefact — buffer stops at both ends (x −798 / 904), station canopy at
+  the park stop (x 334), platform/bench clusters at the home stop, the low grass band at z 3.75–4.55
+  (22 cm tall, outside the rails), and the merged `dino-detail` batch whose single box spans both sides while
+  its individual plants do not. **No prop stands on the rails.** The audit is bounding-box based, so thin
+  diagonal geometry can still produce false positives; it does not replace a run of the train.
+- **Before/after**: `discovery-world/3d/docs/screenshots/stage7/` — `before-park.jpg` / `after-park.png` and
+  `before-dino.jpg` / `after-dino.png`, identical teleports (x 150, x 368), 1280×720, same lighting. The
+  "before" files are the committed stage-6 build; "after" is this build.
 
 ### Measured cost (single-frame A/B, same camera, group visibility only)
 
@@ -63,6 +93,7 @@ Method: two explicit `renderer.render()` calls with `renderer.info.reset()` betw
 
 - **Collision queries:** `src/spatial.js` interval index replaces linear scans in `updatePlayer`/`groundUnder`; 8 unit tests cover filtering, ordering and overlap fraction.
 - **Draw calls:** every new decoration batch is merged or instanced — one draw call per batch. All six detailed areas together add **29 draw calls and 76,440 triangles**.
+- **Stage 7 landscape:** 29 hills + 8 mountains = **2 meshes / 2 draw calls / 51,140 triangles**, replacing 29 separate hill meshes (27 fewer draw calls for the backdrop). Single-frame read at the park: 199 draw calls, 382,430 triangles total. Rocks gained their new detail inside existing geometry (0 extra calls, 0 extra textures).
 - **Texture cost:** anisotropy set once per texture on load, no per-frame work.
 - **Scene audit:** runs only on demand (`window.__DDW3.audit()` or `?audit`), never in the frame loop.
 - **Not measured on real hardware.** The headless environment renders at ~1.2 fps in software; frame-time comparisons there are not representative of a phone or desktop GPU, so no speed-up claim is made from them.
@@ -73,6 +104,7 @@ Method: two explicit `renderer.render()` calls with `renderer.info.reset()` betw
 - `node tests/scene-audit.test.mjs` — 13/13 pass.
 - `npm run build` — succeeds, `index.html` ~9.9 MB.
 - Headless load — 0 page errors.
+- Stage 7 screenshots: 1280×720, park and Dino Valley, 0 page errors; toolbar bounding boxes measured at six widths (see above).
 - Audit — duplicates 0, z-fighting 0, collision entries clean; remaining floor-cut candidates are the known intentional hills.
 
 ## Remaining issues and unverified work
@@ -80,8 +112,10 @@ Method: two explicit `renderer.render()` calls with `renderer.info.reset()` betw
 - **Visual appearance of all new detail is unverified**: headless software WebGL cannot screenshot this scene within a workable timeout. Colours, placement and overlap with existing props still need a real-device look.
 - **Real-device performance** (phones, low-end tablets) is unknown; only geometry/draw-call cost is measured.
 - The audit only sees built scene slices, so numbers depend on where the player is standing.
-- 20 of 26 areas have not had their detail pass yet.
+- Stage 7 screenshots exist only for Park and Dino Valley; Castle and Toy Town were not re-captured against the final mountains, and the headless Chromium used for capture is missing the emoji font, so HUD icons render as blank tiles in these PNGs (the layout measurement is unaffected).
+- Remaining rail-corridor checks are bounding-box based, not a visual pass with the train running.
+- 20 of 26 areas have not had their geometry pass yet.
 
 ## In progress / next
 
-Continue area-by-area detail and material work in this order: **Lab Gardens → Art Plaza → Sunny Seaside → Whispering Woods → Frosty Peaks → Happy Farm → Ocean Pier → Balloon Hills**, then the planets (Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Pluto), then character/pet material polish. Each stage: implement, build, run tests, measure with the single-frame A/B, update this file, commit and push.
+Next: re-capture Castle and Toy Town against the final build, then continue geometry/material work in this order: **Lab Gardens → Art Plaza → Sunny Seaside → Whispering Woods → Frosty Peaks → Happy Farm → Ocean Pier → Balloon Hills**, then the planets (Moon, Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Pluto), then character/pet material polish. Each stage: implement, build, run tests, measure with the single-frame A/B, update this file, commit and push.

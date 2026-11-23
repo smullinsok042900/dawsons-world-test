@@ -499,3 +499,108 @@ export function buildToyTownDetail({ add }) {
 
   return { group, added: { blocks: 8, balls: ballSpots.length, tops: 4 } };
 }
+
+// ===================================================================
+// (stage 7) The Adventure Park backdrop: the old skyline was 29 smooth
+// pastel spheres squashed flat — soft blobs with a painted-on colour and
+// no surface at all. These are now sculpted landforms: every hill is a
+// displaced sphere (three octaves of ridge noise, flattened base) with
+// baked vertex colours (grass, dry crown, rock scars) and a real normal
+// map, all merged into ONE mesh so the whole range costs a single draw
+// call instead of 29. Behind it sits a second, taller mountain ridge so
+// the horizon has depth instead of ending at a row of blobs.
+// ===================================================================
+function ridgeNoise(x, z, oct = 4) {
+  let n = 0, a = .5, f = 1;
+  for (let o = 0; o < oct; o++) {
+    n += a * Math.sin(x * f * 1.7 + Math.cos(z * f * 1.3) * 2.1) * Math.cos(z * f * 1.9 + Math.sin(x * f * .7) * 1.4);
+    a *= .5; f *= 2.13;
+  }
+  return n;
+}
+let HILL_NRM = null;
+function hillNormalMap() {
+  if (HILL_NRM) return HILL_NRM;
+  const S = 128, h = new Float32Array(S * S);
+  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) h[y * S + x] = ridgeNoise(x / S * 9, y / S * 9);
+  const c = document.createElement('canvas'); c.width = c.height = S;
+  const g = c.getContext('2d'), img = g.createImageData(S, S);
+  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
+    const dx = h[y * S + ((x + 1) % S)] - h[y * S + ((x - 1 + S) % S)];
+    const dy = h[((y + 1) % S) * S + x] - h[((y - 1 + S) % S) * S + x];
+    const l = Math.hypot(dx * 3, dy * 3, 1), k = (y * S + x) * 4;
+    img.data[k] = (-dx * 3 / l * .5 + .5) * 255; img.data[k + 1] = (dy * 3 / l * .5 + .5) * 255;
+    img.data[k + 2] = (1 / l * .5 + .5) * 255; img.data[k + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8;
+  t.repeat.set(7, 5); HILL_NRM = t; return t;
+}
+
+/** sculpted park hills + a hazy mountain range; one mesh each (2 draw calls total) */
+export function buildParkHills({ add }) {
+  const group = new THREE.Group(); group.name = 'park-hills'; add(group);
+  const col = new THREE.Color();
+  const hillParts = [];
+  for (let i = 0; i < 29; i++) {
+    const r = 7 + (i % 3) * 2, cx = 140 + i * 10, cz = (i >= 12 ? -31 : -21) - (i % 3) * 3;
+    const base = ['#63ad72', '#559f66', '#74bb80'][i % 3];
+    const g = new THREE.SphereGeometry(1, 34, 22);
+    const p = g.attributes.position;
+    for (let k = 0; k < p.count; k++) {
+      const x = p.getX(k), y = p.getY(k), z = p.getZ(k);
+      const n = 1 + .16 * ridgeNoise(x * 2.4 + i, z * 2.4) + .07 * ridgeNoise(x * 5.6 - i, z * 5.6, 3);
+      p.setXYZ(k, x * n, Math.max(y * n, -.22), z * n);
+    }
+    g.computeVertexNormals();
+    const cols = new Float32Array(p.count * 3);
+    for (let k = 0; k < p.count; k++) {
+      const x = p.getX(k), y = p.getY(k), z = p.getZ(k);
+      const grain = ridgeNoise(x * 6 + i * 3, z * 6);
+      col.set(base).multiplyScalar(.9 + grain * .12);
+      if (y > .6) col.lerp(new THREE.Color('#a8b98e'), Math.min(1, (y - .6) * 1.1)); // dry, stony crowns
+      if (grain > .38 && y > .08) col.lerp(new THREE.Color('#8d9c8c'), .55);             // rock scars
+      if (y < .02) col.multiplyScalar(.88);                                              // shaded foot
+      cols[k * 3] = col.r; cols[k * 3 + 1] = col.g; cols[k * 3 + 2] = col.b;
+    }
+    g.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+    g.scale(r * 1.3, r * .62, r);
+    g.translate(cx, -3, cz);
+    hillParts.push(g);
+  }
+  const hills = new THREE.Mesh(mergeParts(hillParts), new THREE.MeshStandardMaterial({
+    vertexColors: true, roughness: .93, metalness: 0, normalMap: hillNormalMap(), normalScale: new THREE.Vector2(.55, .55),
+  }));
+  hills.name = 'park-hills-mesh'; hills.receiveShadow = false; group.add(hills);
+
+  // the range behind: taller, cooler, softened by distance
+  const mtnParts = [];
+  for (let i = 0; i < 8; i++) {
+    const r = 30 + (i % 3) * 9, cx = 96 + i * 46, cz = -136 - (i % 3) * 12, hgt = 15 + (i % 3) * 5;
+    const g = new THREE.SphereGeometry(1, 32, 20);
+    const p = g.attributes.position;
+    for (let k = 0; k < p.count; k++) {
+      const x = p.getX(k), y = p.getY(k), z = p.getZ(k);
+      const rd = Math.abs(ridgeNoise(x * 3.1 + i * 2, z * 3.1)) * .5 + Math.abs(ridgeNoise(x * 7.3, z * 7.3 + i)) * .22;
+      const n = 1 + rd;
+      p.setXYZ(k, x * n, Math.max(y * n, -.3), z * n);
+    }
+    g.computeVertexNormals();
+    const cols = new Float32Array(p.count * 3);
+    for (let k = 0; k < p.count; k++) {
+      const x = p.getX(k), y = p.getY(k), z = p.getZ(k);
+      const t = (y + .3) / 1.3;
+      col.set('#5d87a0').lerp(new THREE.Color('#a7c6d6'), Math.max(0, t));
+      if (t > .62) col.lerp(new THREE.Color('#eff7fa'), (t - .62) * 1.7);             // snow-pale caps
+      col.multiplyScalar(.92 + ridgeNoise(x * 4, z * 4 + i) * .09);
+      cols[k * 3] = col.r; cols[k * 3 + 1] = col.g; cols[k * 3 + 2] = col.b;
+    }
+    g.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+    g.scale(r, hgt, r * .72);
+    g.translate(cx, -2, cz);
+    mtnParts.push(g);
+  }
+  const mtn = new THREE.Mesh(mergeParts(mtnParts), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0 }));
+  mtn.name = 'park-mountains'; group.add(mtn);
+  return { group, added: { hills: 29, mountains: 8 } };
+}
