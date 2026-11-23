@@ -38,9 +38,12 @@ remove it here and record it in `DEVELOPMENT_LOG.md`. Add new findings (bugs, id
   0 z-fighting, screenshots in `docs/screenshots/stage20/`.
 - **Done:** Stage 21 — the Moon (crater rims with bright ejecta rays, layered regolith colours, 37 new craters and 54
   pebbles): ground mesh 1 mesh / 25,904 tris, audit 0 z-fighting, screenshots in `docs/screenshots/stage21/`.
-- **Exact next task:** Stage 22 — Mercury (crater rims and ejecta, layered regolith colours); capture with
-  `node tools/capture.cjs docs/screenshots/stage22 '[[…,…]]' --place mercury`, run both tests and
-  `node tools/audit.cjs --place mercury …`, then sync the same PR.
+- **Done:** Stage 22 — Mercury (deeper crater bowls with bright rims, capped ejecta rays, layered regolith, bright
+  volatile hollows, 37 new craters and 46 pebbles): ground mesh 1 mesh / 25,864 tris, audit 0 z-fighting,
+  screenshots in `docs/screenshots/stage22/`.
+- **Exact next task:** Stage 23 — Venus (layered cloud bands, horizon atmosphere and the lava-country palette); capture
+  with `node tools/capture.cjs docs/screenshots/stage23 '[[…,…]]' --place venus`, run both tests and
+  `node tools/audit.cjs --place venus …`, then sync the same PR.
 - **Tooling now available (2026-11-23):** `@gltf-transform/cli` 4.5.1 is a devDependency; KTX-Software `ktx`
   v4.4.2 is at `~/ktx/bin` (ETC1S/Basis verified on `tree_0.glb`, output valid `KHR_texture_basisu`); Blender
   4.2.3 LTS runs headless from `~/blender-4.2.3-linux-x64` with user-space libs. KTX2 is **not** wired into
