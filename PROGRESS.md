@@ -62,7 +62,7 @@ draft pull request — never a push to `main`.
 | 9 | Lab Gardens: glazed greenhouses on drum walls with doors and ribs, raised beds with soil depth, edging fences, potting bench with lathed glassware and copper plumbing; ride/climb placement sweep; capture harness committed | `be0db6b` | 21 tests, build, paired screenshots (Lab Gardens), 5 close-ups, 4 ride close-ups, audit clean, `labgarden-detail` measured |
 | 10 | Art Plaza gallery yard: paint-splattered paving, four kerbed planters, two easels and a drying rack with painted canvases, paint pots and brushes, bunting on poles across the plaza | `e6107b5` | 21 tests, build 9,942 KB, paired screenshots, audit clean, `artplaza-detail` measured |
 | 11 | Sunny Seaside shoreline: five striped parasols with towels and beach balls, dune grass along the back of the sand, driftwood; clear of the lighthouse, pier and crab walk | `8959495` | 21 tests, build 9,945 KB, paired screenshots, audit clean, `seaside-detail` measured |
-| 12 | Whispering Woods forest: nine trees with tapered two-tone trunks, limbs and four stacked crown clumps, a fern understory along the path, and a swept campfire clearing with bench logs and a woodpile | this commit | 21 tests, build 9,948 KB, paired screenshots, audit clean, `woods-detail` measured |
+| 12 | Whispering Woods forest: nine trees with tapered two-tone trunks, limbs and four overlapping leaf-textured crowns with a leaf-card fringe, a fern understory along the path, and a swept campfire clearing with bench logs and a woodpile | this commit | 21 tests, build 9,949 KB, paired screenshots, audit clean, `woods-detail` measured |
 
 ## Graphics improvements
 
@@ -229,13 +229,18 @@ Art Plaza's activities were already good; the district around them was a flat ch
 ### Stage 12 — Whispering Woods: trunks, canopy layers and a clearing
 
 - **Nine real trees** between the path and the back row (x −157 … −266): a tapered trunk in two bark tones, three
-  limbs at different heights and angles, and four overlapping crown clumps (dark and light greens) stacked so
-  neighbouring crowns meet into a canopy. Placed clear of the hollow log, birdhouse, hidden owl and tunnel mouth.
+  limbs at different heights and angles, and four overlapping crowns stacked so neighbouring crowns meet into a
+  canopy. Placed clear of the hollow log, birdhouse, hidden owl and tunnel mouth.
+- **Crown fix (same stage):** the first pass used smooth vertex-tinted icosahedra, which read as plastic blobs and
+  left one crown floating apart. The crowns are now lumpy meshes carrying the engine's own leaf-detail map and
+  normal map (the same material recipe its trees use), tinted through vertex colours, with **44 leaf cards per
+  tree** fringing each crown. The four clumps overlap inside the lower crown's radius, so nothing detaches.
 - **Fern understory** on both sides of the path: three rows at z −5.1/−5.9/−6.7, four arched blades per tuft in one
   instanced mesh, skipping the six interactive props.
 - **Campfire clearing** at x −165: a swept earth disc (r 2.35) under the existing stone ring, two half-log benches
   with pale cut ends, and a four-log woodpile. No new tap targets — all of it is scenery.
-- Everything merges into **4 meshes / 22,256 triangles** (timber, crowns, ferns, earth disc), no collision entries.
+- Everything merges into **5 meshes / 31,688 triangles** (timber, crowns, leaf cards, ferns, earth disc), no
+  collision entries.
 
 ### Measured cost (single-frame A/B, same camera, group visibility only)
 
@@ -269,10 +274,11 @@ LOD depend on the live player state, so they move between runs by more than the 
 | Group | Meshes | Triangles |
 |---|---|---|
 | `woods-detail` timber (trunks, limbs, benches, woodpile) | 1 | — |
-| `woods-detail` crowns (36 stacked clumps) | 1 | — |
+| `woods-detail` crowns (36 textured lumpy clumps) | 1 | — |
+| `woods-detail` leaf cards (396 instanced) | 1 | — |
 | `woods-detail` ferns (instanced, 4 blades per tuft) | 1 | — |
 | `woods-detail` clearing earth disc | 1 | — |
-| **Total** | **4** | **22,256** |
+| **Total** | **5** | **31,688** |
 
 ### Stage 11 measured cost (streamed district group)
 
@@ -321,7 +327,7 @@ which is why the named-group probe is the number quoted here.
 ## Speed and performance
 
 - **Collision queries:** `src/spatial.js` interval index replaces linear scans in `updatePlayer`/`groundUnder`; 8 unit tests cover filtering, ordering and overlap fraction.
-- **Draw calls:** every new decoration batch is merged or instanced — one draw call per batch. All nine detailed areas together add **47 draw calls and 111,022 triangles**.
+- **Draw calls:** every new decoration batch is merged or instanced — one draw call per batch. All nine detailed areas together add **48 draw calls and 120,454 triangles**.
 - **Stage 7 landscape:** 29 hills + 8 mountains = **2 meshes / 2 draw calls / 51,140 triangles**, replacing 29 separate hill meshes (27 fewer draw calls for the backdrop). Single-frame read at the park: 199 draw calls, 382,430 triangles total. Rocks gained their new detail inside existing geometry (0 extra calls, 0 extra textures).
 - **Texture cost:** anisotropy set once per texture on load, no per-frame work.
 - **Scene audit:** runs only on demand (`window.__DDW3.audit()` or `?audit`), never in the frame loop.
@@ -331,7 +337,7 @@ which is why the named-group probe is the number quoted here.
 
 - `node tests/spatial.test.mjs` — 8/8 pass.
 - `node tests/scene-audit.test.mjs` — 13/13 pass.
-- `npm run build` — succeeds, `index.html` 9,948 KB.
+- `npm run build` — succeeds, `index.html` 9,949 KB.
 - Headless load (Chromium headless shell + SwiftShader), stage 9 build — **0 page errors, no "Oops" fallback** at x 695 (Lab Gardens) and 771 (potting bench); the ride sweep also loaded cleanly at the carousel, the Ferris wheel and Dino Valley.
 - Headless load, stage 10 build — **0 page errors, no "Oops" fallback** at x 815, 850 and 868 (Art Plaza).
 - Stage 9 screenshots: 1280×720, dpr 1, `before-labgarden.png` (stage-8 build) and `after-labgarden.png` (this build) at x 695, `after-labbench.png` at x 771, `close-dome.png` and `close-bench.png` from a pinned inspection camera, and four ride/climb close-ups in `rides/`. Camera settle is waited on for every shot.
@@ -341,7 +347,7 @@ which is why the named-group probe is the number quoted here.
 - Model probe (`labgarden-detail`): **5 meshes / 28,320 triangles** (paint 9,284, glassware 772, copper 740, leaves 14,544 across 606 instances, blooms 2,020 across 101).
 - Model probe (`artplaza-detail`): **10 meshes / 4,262 triangles** (merged wood/stone, fabric flags, paving decal, five canvases, instanced leaves and blooms).
 - Model probe (`seaside-detail`): **4 meshes / 8,064 triangles**.
-- Model probe (`woods-detail`): **4 meshes / 22,256 triangles**.
+- Model probe (`woods-detail`): **5 meshes / 31,688 triangles** (after the crown fix).
 - Audit at x −200 and −250, stage 12 build: duplicates 6 (character face spheres, unchanged), **z-fighting 1 at x −200**
   (a pre-existing ground-plane seam at y 0.029 — the stage-11 baseline shows the same one), buried 10 vs 8 baseline
   (same terrain artefacts, none in the woods), solids 12 and platforms 111 all well formed, 0 page errors.

@@ -313,7 +313,10 @@ No FPS claim: software WebGL only.
 - **Fern understory** in three rows beside the path, four instanced blades per tuft.
 - **Campfire clearing** at x −165: swept earth disc under the stone ring, two half-log benches and a four-log woodpile,
   all scenery with no new tap targets.
-- **Cost:** 4 meshes / 22,256 triangles / +4 draw calls, one streamed group (`woods-detail`), no collision entries.
+- **Crown fix:** the first crowns were smooth tinted icosahedra and read as blobs, with one clump floating apart.
+  They now use lumpy meshes with the engine's leaf-detail map + normal map and 44 instanced leaf cards per tree,
+  and the four clumps overlap inside the lower crown radius so none detaches.
+- **Cost:** 5 meshes / 31,688 triangles / +5 draw calls, one streamed group (`woods-detail`), no collision entries.
 
 Evidence: `docs/screenshots/stage12/` — `before-woods.png`, `before-woods-west.png` (stage-11 build) and
 `after-woods.png` (x −200), `after-woods-west.png` (x −250). Audit: 0 page errors, 6 duplicates (character face

@@ -14,7 +14,7 @@
 // ===================================================================
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { leafNormal } from './nature.js';
+import { leafNormal, leafDetail, leafTexture } from './nature.js';
 
 const C = new THREE.Color();
 
@@ -984,8 +984,17 @@ export function buildWoodsDetail({ add }) {
     g.translate((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2);
     list.push(tinted(g, hex)); g.dispose();
   };
-  const clump = (list, hex, r, x, y, z, squash = .72) => {
-    const g = new THREE.IcosahedronGeometry(r, 1); g.scale(1, squash, 1); g.translate(x, y, z);
+  // (stage 12 fix) crowns are lumpy, leaf-textured blobs like the engine's own trees, not smooth
+  // tinted spheres: same leaf-detail map and normal map, plus a fringe of leaf cards below
+  const LD = leafDetail();
+  const crownMat = new THREE.MeshPhysicalMaterial({ map: LD.map, normalMap: LD.normal, normalScale: new THREE.Vector2(.7, .7), vertexColors: true, roughness: .8, sheen: .6, sheenRoughness: .6, sheenColor: new THREE.Color('#e4f7c0') });
+  const lumpy = r => {
+    const g = new THREE.IcosahedronGeometry(r, 3), p = g.attributes.position, v = new THREE.Vector3();
+    for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i); const n = 1 + Math.sin(v.x * 4.1) * Math.sin(v.y * 3.7 + 1) * Math.sin(v.z * 4.3) * .13 + Math.sin(v.x * 9 + v.z * 7) * .03; v.multiplyScalar(n); p.setXYZ(i, v.x, v.y, v.z); }
+    g.computeVertexNormals(); return g;
+  };
+  const clump = (list, hex, r, x, y, z, squash = .78) => {
+    const g = lumpy(r); g.scale(1, squash, 1); g.translate(x, y, z);
     list.push(tinted(g, hex)); g.dispose();
   };
 
@@ -999,11 +1008,13 @@ export function buildWoodsDetail({ add }) {
     beam(woodParts, '#5f452f', [x, h * .52, z], [x + .95 * s, h * 1.02, z + .3 * s], .07 * s);
     beam(woodParts, '#6b4c34', [x, h * .6, z], [x - .85 * s, h * 1.08, z - .45 * s], .055 * s);
     beam(woodParts, '#6b4c34', [x + lean, h * .78, z], [x + .3 * s, h * 1.32, z - .95 * s], .045 * s);
-    const c1 = i % 2 ? '#3f7f46' : '#4a8f4c', c2 = i % 2 ? '#57a35a' : '#63b062';
-    clump(leafParts, c1, .95 * s, x, h * 1.0, z);
-    clump(leafParts, c2, .78 * s, x + .42 * s, h * 1.28, z + .18 * s, .8);
-    clump(leafParts, c1, .68 * s, x - .38 * s, h * 1.24, z - .26 * s, .78);
-    clump(leafParts, c2, .52 * s, x + .1 * s, h * 1.5, z + .05 * s, .85);
+    const c1 = i % 2 ? '#7cb968' : '#8ac474', c2 = i % 2 ? '#9ad483' : '#a8de91';
+    // (stage 12 fix) the four crowns overlap heavily so no clump reads as floating: offsets stay
+    // inside the lower crown's radius and the top sits directly on the stack
+    clump(leafParts, c1, .98 * s, x, h * 1.0, z);
+    clump(leafParts, c2, .8 * s, x + .34 * s, h * 1.2, z + .16 * s, .82);
+    clump(leafParts, c1, .74 * s, x - .32 * s, h * 1.18, z - .22 * s, .8);
+    clump(leafParts, c2, .6 * s, x + .04 * s, h * 1.34, z + .02 * s, .86);
   });
 
   // ---- understory ferns on both sides of the path, clear of the interactive props
@@ -1027,7 +1038,18 @@ export function buildWoodsDetail({ add }) {
   for (let k = 0; k < 4; k++) beam(woodParts, k % 2 ? '#6b4c34' : '#7d5a3c', [-168.9, .16 + k * .11, -2.2 - k * .04], [-167.9, .16 + k * .11, -2.9 + k * .05], .1);
 
   const timber = new THREE.Mesh(mergeMixed(woodParts), barkM); timber.castShadow = timber.receiveShadow = true; group.add(timber);
-  const crowns = new THREE.Mesh(mergeMixed(leafParts), leafM); crowns.castShadow = crowns.receiveShadow = true; group.add(crowns);
+  const crowns = new THREE.Mesh(mergeMixed(leafParts), crownMat); crowns.castShadow = crowns.receiveShadow = true; group.add(crowns);
+  // leaf-card fringe around each crown: the fuzz that makes the engine's trees read as leaves
+  const cards = new THREE.InstancedMesh(new THREE.PlaneGeometry(.42, .42), new THREE.MeshStandardMaterial({ map: leafTexture(), alphaTest: .5, side: THREE.DoubleSide, roughness: .78 }), TREES.length * 44);
+  { const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), pv = new THREE.Vector3(), sv = new THREE.Vector3(); let ci = 0;
+    TREES.forEach(([x, z], i) => { const s = .92 + (i % 3) * .14, h = 2.7 * s, cy = h * 1.12, cr = 1.05 * s;
+      for (let k = 0; k < 44; k++) {
+        const a = (k * 2.399) % 6.283, yy = ((k * 0.618) % 1) * 2 - 1;
+        pv.set(x + Math.cos(a) * cr * Math.sqrt(1 - yy * yy) * .95, cy + yy * cr * .75, z + Math.sin(a) * cr * Math.sqrt(1 - yy * yy) * .95);
+        e.set((k % 3) * .7, a, (k % 2 ? 1 : -1) * .5); q.setFromEuler(e); sv.setScalar(.8 + (k % 4) * .12);
+        m4.compose(pv, q, sv); cards.setMatrixAt(ci, m4); cards.setColorAt(ci, C.set(k % 2 ? '#8ac474' : '#a8de91')); ci++;
+      } }); }
+  cards.castShadow = true; cards.receiveShadow = true; group.add(cards);
   const fernGeo = broadLeafGeometry({ len: .44, wid: .19, rise: .3, droop: .2, cup: .05, rib: .012, seg: 5, across: 3 });
   const ferns = new THREE.InstancedMesh(fernGeo, fernM, fernSpots.length * 4);
   const mtx = new THREE.Matrix4(), q = new THREE.Quaternion(), eu = new THREE.Euler(), v = new THREE.Vector3(), sc = new THREE.Vector3();
