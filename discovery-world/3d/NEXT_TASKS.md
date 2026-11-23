@@ -3,6 +3,16 @@
 Prioritized unfinished work, highest first. Take the top item that can be done without the user. When a task is done,
 remove it here and record it in `DEVELOPMENT_LOG.md`. Add new findings (bugs, ideas, measurements that look wrong) as you go.
 
+## Checkpoint 2026-11-23: draft PR is open
+
+- **PR #104** → https://github.com/smullinsok042900/Dawson-s-Wonderverse/pull/104 — `feature/full-3d-overhaul` → `main`,
+  draft, carries stages 1–9. Never merge automatically, never push to the original `main`.
+- After every stage: commit and push to `dawsons-world-test`, then run the `Sync the 3D overhaul` workflow on the
+  branch (it copies the paths, runs the focused tests, rebuilds `index.html`, commits) and confirm the PR moved.
+- **Exact next task:** Stage 10 — Art Plaza graphics pass (see the stage list below): paint-splashed plaza floor with
+  kerbed planters, easels and drying racks, hanging gallery banners, a working fountain basin, and the market stalls'
+  trim; measure with the capture harness, then sync the same PR.
+
 
 ## Active family request: the next thirty creations
 Build 121's sixteen additional residents and build 122's next thirty are integrated. All 128 native checks, the actual touch/PAW, cleanup/revisit and save/reload tours and the full desktop gameplay suite pass. The build-120 versus build-122 performance audit runs as the opt-in `performance-audit` GitHub Actions job (`tests/perf/family-friends.cjs` over all 46 homes, matched shown/hidden rounds and area-entry shader audits) and writes `tests/PERFORMANCE_BUILD122.json`. Keep both confirmed twin pairs distinct; use `FAMILY_FRIENDS.md` for all fifty-three family characters, including the original seven.
