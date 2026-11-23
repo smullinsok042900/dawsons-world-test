@@ -324,5 +324,18 @@ spheres), 1 z-fighting seam at x −200 that the stage-11 baseline also shows, b
 platforms 111 well formed. Capture now goes through CDP `Page.captureScreenshot` because `page.screenshot` times out
 under software WebGL. No FPS claim.
 
-Next: Frosty Peaks, Happy Farm, Ocean Pier, Balloon Hills, Adventure Trail, Playhouse,
+## Stage 13 — Frosty Peaks ridgeline and drifts
+
+- **Ridgeline** at z −15.4: four faceted rock shoulders with thick snow caps and an ice peak.
+- **Seven snow-loaded pines** with three cone tiers each and a snow cone over every tier.
+- **Ice arch** at x −372 (two clear-ice piers, half-torus apex, icicle), placed clear of pond, igloo and penguins.
+- **Wind drifts**: instanced white mounds both sides of the path, skipping pond, igloo, sledding hill/steps, snowman
+  and snowball target.
+- **Cost:** 5 meshes / 16,428 triangles / +5 draw calls, one streamed group (`frosty-detail`), no collision entries.
+
+Evidence: `docs/screenshots/stage13/` — before (stage-12 build) and after at x −320 and −370. The first render was
+corrected before commit (dark drifts from a missing vertex-colour attribute; an oversized bare ridge). Audit at both
+positions: z-fighting 0, solids 12, platforms 115, 0 page errors. No FPS claim.
+
+Next: Happy Farm, Ocean Pier, Balloon Hills, Adventure Trail, Playhouse,
 then the planets in order Moon → … → Pluto, then character/pet material polish.
