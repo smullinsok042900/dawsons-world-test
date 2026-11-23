@@ -42,9 +42,13 @@ remove it here and record it in `DEVELOPMENT_LOG.md`. Add new findings (bugs, id
   first approach, soft bright rims, dark floors, wide ray lanes with dark gaps, layered regolith, volatile hollows,
   37 new craters, 46 pebbles): ground mesh 1 mesh / 51,464 tris, audit clean apart from the pre-existing y 0.029
   plane pair, screenshots from the normal camera in `docs/screenshots/stage22/`.
-- **Exact next task:** Stage 23 — Venus (layered cloud bands, horizon atmosphere and the lava-country palette); capture
-  with `node tools/capture.cjs docs/screenshots/stage23 '[[…,…]]' --place venus`, run both tests and
-  `node tools/audit.cjs --place venus …`, then sync the same PR.
+- **Done:** Stage 23 — Venus (240x90 terrain grid, three translucent drifting cloud sheets, pancake domes, cinder
+  cones, tessera highlands, branching lava channels, glowing fumaroles, volcanic-plain palette): ground mesh 1 mesh /
+  49,660 tris, whole place 35 meshes / 129,200 tris, audit 0 z-fighting at 12/40/70/120, screenshots in
+  `docs/screenshots/stage23/`.
+- **Exact next task:** Stage 24 — Mars (dust-devil and rock-field detail, ice-cap and canyon atmosphere, layered
+  ochre palette); capture with `node tools/capture.cjs docs/screenshots/stage24 '[[…,…]]' --place mars`, run both
+  tests and `node tools/audit.cjs --place mars …`, then sync the same PR.
 - **Tooling now available (2026-11-23):** `@gltf-transform/cli` 4.5.1 is a devDependency; KTX-Software `ktx`
   v4.4.2 is at `~/ktx/bin` (ETC1S/Basis verified on `tree_0.glb`, output valid `KHR_texture_basisu`); Blender
   4.2.3 LTS runs headless from `~/blender-4.2.3-linux-x64` with user-space libs. KTX2 is **not** wired into
