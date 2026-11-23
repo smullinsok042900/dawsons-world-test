@@ -1,0 +1,204 @@
+// ===================================================================
+// train.js: 3D build 9, THE WONDER EXPRESS. A little steam train runs
+// along the front of the whole world, with a station at every area.
+//   • Tap a station sign (or PAW by it) and the train chugs in; you hop in.
+//   • It drives itself from station to station, stopping at each one.
+//     While it's stopped: slide right or left to go that way,
+//     PAW (or slide down) to hop off. JUMP toots the whistle.
+// ===================================================================
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
+import { toy, ball } from './creatures.js';
+
+export const TRAIN = { z: 3.2, x0: -798, x1: 904, seat: 2.25 }; // (build 30: the line now runs the whole world)
+export const STATIONS = [
+  { x: -788, e: '🎈' }, // (build 49: Balloon Hills)
+  { x: -656, e: '🌊' }, // (build 38: Ocean Pier)
+  { x: -524, e: '🚜' }, // (build 35: Happy Farm)
+  { x: -392, e: '❄️' }, // (build 31: Frosty Peaks)
+  { x: -262, e: '🦊' }, { x: -160, e: '🌲' }, { x: -40, e: '🏖️' }, // (build 30: the seaside and the woods, to the left)
+  { x: 1.2, e: '🏠' }, { x: 61, e: '🎨' }, { x: 113, e: '🧪' }, { x: 170, e: '🎠' },
+  { x: 222, e: '🧱' }, { x: 277, e: '🏎️' }, { x: 320, e: '🔮' }, { x: 366.5, e: '🦕' }, { x: 397, e: '👑' },
+  { x: 441, e: '🌉' }, { x: 561, e: '🧸' }, { x: 681, e: '🚀' }, { x: 801, e: '🖍️' }, { x: 892, e: '🌈' }, // (build 30: the new neighbourhoods)
+];
+
+const emojiTex = (e, bg) => {
+  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
+  g.fillStyle = bg; g.beginPath(); g.arc(64, 64, 60, 0, 7); g.fill(); g.lineWidth = 8; g.strokeStyle = '#ffffff'; g.stroke();
+  g.font = '72px serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(e, 64, 70);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+};
+
+function buildTrain() {
+  const T = new THREE.Group();
+  const red = toy('#ff4f9a', { r: .25, cc: 1, m: .1 }), gold = toy('#ffd23f', { r: .2, cc: 1, m: .5 }), navy = toy('#4b3c8f', { r: .4, cc: .6 }), white = toy('#ffffff', { r: .3, cc: 1 });
+  // the engine (local +x is forwards)
+  const chassis = new THREE.Mesh(new RoundedBoxGeometry(2.1, .3, 1.05, 2, .1), navy); chassis.position.set(0, .38, 0); T.add(chassis);
+  const boiler = new THREE.Mesh(new THREE.CylinderGeometry(.34, .34, 1.2, 24), red); boiler.rotation.z = Math.PI / 2; boiler.position.set(.3, .78, 0); T.add(boiler);
+  for (const x of [-.05, .4, .82]) { const band = new THREE.Mesh(new THREE.TorusGeometry(.345, .03, 8, 28), gold); band.rotation.y = Math.PI / 2; band.position.set(x, .78, 0); T.add(band); }
+  const cab = new THREE.Mesh(new RoundedBoxGeometry(.7, .62, 1.0, 2, .1), red); cab.position.set(-.62, .82, 0); T.add(cab);
+  const roof = new THREE.Mesh(new RoundedBoxGeometry(.9, .1, 1.15, 2, .04), navy); roof.position.set(-.62, 1.18, 0); T.add(roof);
+  for (const z of [-.51, .51]) { const w = new THREE.Mesh(new THREE.PlaneGeometry(.4, .3), new THREE.MeshPhysicalMaterial({ color: '#cfefff', roughness: .05, clearcoat: 1, emissive: '#9fdcff', emissiveIntensity: .25 })); w.position.set(-.62, .9, z); w.rotation.y = z > 0 ? 0 : Math.PI; T.add(w); }
+  const chimney = new THREE.Mesh(new THREE.CylinderGeometry(.13, .1, .32, 16), navy); chimney.position.set(.72, 1.25, 0); T.add(chimney);
+  const lip = new THREE.Mesh(new THREE.CylinderGeometry(.19, .15, .1, 16), gold); lip.position.set(.72, 1.43, 0); T.add(lip);
+  const dome = ball(gold, .14, .25, 1.12, 0); T.add(dome);
+  // a happy face on the front of the boiler
+  const faceDisc = new THREE.Mesh(new THREE.CircleGeometry(.3, 28), toy('#fff3dc', { r: .5 })); faceDisc.rotation.y = Math.PI / 2; faceDisc.position.set(.905, .78, 0); T.add(faceDisc);
+  for (const z of [-.11, .11]) { T.add(ball(toy('#2a1a40', { r: .2, cc: 1 }), .045, .915, .84, z)); T.add(ball(toy('#ff8fc0', { r: .6 }), .04, .91, .7, z * 1.9)); }
+  const smile = new THREE.Mesh(new THREE.TorusGeometry(.09, .018, 6, 16, Math.PI), toy('#2a1a40')); smile.rotation.set(Math.PI, Math.PI / 2, 0); smile.position.set(.915, .73, 0); T.add(smile);
+  const lamp = ball(toy('#fff6b0', { em: '#ffe36e', ei: 1.2 }), .07, .62, 1.1, 0); lamp.position.set(.92, .5, 0); T.add(lamp);
+  // cow-catcher
+  const cc = new THREE.Mesh(new THREE.ConeGeometry(.45, .4, 4), gold); cc.rotation.set(0, Math.PI / 4, -Math.PI / 2); cc.scale.set(.6, 1, 1.6); cc.position.set(1.12, .28, 0); T.add(cc);
+  // two open carriages behind (the first one is where you sit)
+  const cars = [['#3d9bff', -TRAIN.seat], ['#ffd23f', -4.35]];
+  for (const [c, x] of cars) {
+    const body = new THREE.Mesh(new RoundedBoxGeometry(1.75, .5, 1.0, 3, .14), toy(c, { r: .25, cc: 1, m: .1 })); body.position.set(x, .62, 0); T.add(body);
+    const rim = new THREE.Mesh(new RoundedBoxGeometry(1.85, .08, 1.08, 2, .04), white); rim.position.set(x, .9, 0); T.add(rim);
+    const base = new THREE.Mesh(new RoundedBoxGeometry(1.9, .18, 1.0, 2, .06), navy); base.position.set(x, .34, 0); T.add(base);
+    const hitch = new THREE.Mesh(new THREE.BoxGeometry(.4, .08, .12), navy); hitch.position.set(x + 1.1, .36, 0); T.add(hitch);
+  }
+  // wheels (they spin)
+  T.userData.wheels = [];
+  const tyre = toy('#2a1a40', { r: .5, cc: .3 }), hubM = toy('#ffd23f', { r: .2, cc: 1, m: .6 });
+  for (const x of [.65, .05, -.6, -TRAIN.seat + .5, -TRAIN.seat - .5, -4.35 + .5, -4.35 - .5]) for (const z of [-.5, .5]) {
+    const w = new THREE.Group(); w.position.set(x, .2, z); T.add(w); T.userData.wheels.push(w);
+    const t = new THREE.Mesh(new THREE.CylinderGeometry(.2, .2, .1, 18), tyre); t.rotation.x = Math.PI / 2; w.add(t);
+    const h = new THREE.Mesh(new THREE.CylinderGeometry(.1, .1, .12, 6), hubM); h.rotation.x = Math.PI / 2; w.add(h);
+    const spoke = new THREE.Mesh(new THREE.BoxGeometry(.34, .04, .13), hubM); w.add(spoke);
+  }
+  const seat = new THREE.Object3D(); seat.position.set(-TRAIN.seat, .62, 0); T.add(seat); T.userData.seat = seat;
+  T.userData.seats = [seat, ...[[-TRAIN.seat - .62, 0], [-4.35 + .32, 0], [-4.35 - .42, 0]].map(([x, z]) => { const o = new THREE.Object3D(); o.position.set(x, .62, z); T.add(o); return o; })]; // (build 102: friends ride along)
+  T.userData.chimneyTop = new THREE.Vector3(.72, 1.5, 0);
+  T.traverse(o => { if (o.isMesh) { o.castShadow = true; } });
+  return T;
+}
+
+export function initTrain(G, api) {
+  const { scene, Sound, burst, discover, toast } = api;
+  const add = o => { scene.add(o); o.userData.dynamic = true; return o; }; // (moves along the whole track: never put in a scenery slice)
+  // ---------- the rails along the front of the world ----------
+  { const len = TRAIN.x1 - TRAIN.x0, mx = (TRAIN.x0 + TRAIN.x1) / 2, steel = toy('#d8d2f0', { r: .22, cc: .6, m: .85 });
+    for (const dz of [-.5, .5]) { const r = new THREE.Mesh(new THREE.BoxGeometry(len, .07, .07), steel); r.position.set(mx, .1, TRAIN.z + dz); r.receiveShadow = true; add(r); }
+    const N = Math.floor(len / .9), sl = new THREE.InstancedMesh(new RoundedBoxGeometry(.24, .07, 1.35, 1, .03), toy('#c98b5a', { r: .75, cc: .1 }), N), m4 = new THREE.Matrix4(), cl = new THREE.Color();
+    for (let i = 0; i < N; i++) { m4.makeTranslation(TRAIN.x0 + .45 + i * .9, .04, TRAIN.z); sl.setMatrixAt(i, m4); sl.setColorAt(i, cl.setHSL(.07, .45, .5 + (i * 37 % 11) / 90)); }
+    sl.receiveShadow = true; add(sl);
+    // buffers at both ends
+    for (const [x, s] of [[TRAIN.x0, -1], [TRAIN.x1, 1]]) { const b = new THREE.Mesh(new RoundedBoxGeometry(.4, .6, 1.4, 2, .12), toy('#8a5a3a', { r: .7 })); /* (build 62: wood, like the track: a pink buffer merged with the pink rainbow step beside it) */ b.position.set(x + s * .2, .3, TRAIN.z); b.castShadow = true; add(b); }
+  }
+  // ---------- the stations ----------
+  STATIONS.forEach((st, i) => {
+    const g = new THREE.Group(); g.position.set(st.x, 0, 0); add(g);
+    const plat = new THREE.Mesh(new RoundedBoxGeometry(4.2, .22, .8, 2, .08), toy('#fff1dc', { r: .5, cc: .4 })); plat.position.set(0, .11, TRAIN.z + .95); plat.receiveShadow = true; g.add(plat);
+    for (let k = 0; k < 6; k++) { const t = new THREE.Mesh(new THREE.BoxGeometry(.6, .03, .12), toy(k % 2 ? '#ff4f9a' : '#ffd23f')); t.position.set(-1.75 + k * .7, .235, TRAIN.z + .6); g.add(t); }
+    // a picture sign with a bell at both ends of the platform (so one is always on screen)
+    st.bells = [];
+    for (const sx of [-2.4, 2.4]) {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(.04, .06, .4, 10), toy('#ffffff')); post.position.set(sx, .2, TRAIN.z + .9); // (build 43: smaller and lower, so it never stands in front of the view) post.castShadow = true; g.add(post);
+      const sign = new THREE.Mesh(new THREE.CircleGeometry(.25, 32), new THREE.MeshBasicMaterial({ map: emojiTex(st.e, ['#ff6fae', '#3d9bff', '#a15cff', '#3cc46e', '#ff9a2e', '#ffd23f', '#5bc8ff'][i % 7]), transparent: true }));
+      sign.position.set(sx, .6, TRAIN.z + .95); /* low, so it never hides your creature */ g.add(sign);
+      const bell = new THREE.Mesh(new THREE.SphereGeometry(.16, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), toy('#ffd23f', { m: .7, r: .2 })); bell.position.set(sx + .42, .55, TRAIN.z + .95); bell.rotation.x = Math.PI; g.add(bell);
+      st.bells.push(bell);
+    }
+    api.tap(g, () => call(i));
+    G.interact.push({ x: st.x, y: 0, layer: '', disc: 'train', run: () => call(i), hintY: 1.8 });
+  });
+
+  // ---------- the train itself ----------
+  const train = buildTrain(); add(train);
+  api.tap(train, () => { const P = api.player; if (P.ride && P.ride.type === 'train') { whistle(); return; } if (follow) { if (G.trainJoin) G.trainJoin(); return; } /* (build 102: a friend is driving: hop on with them) */ const i = nearestStation(P.x); if (Math.abs(STATIONS[i].x - P.x) < 6) call(i); });
+  // T.x is the engine's position; the seat is TRAIN.seat behind it
+  const HOME = Math.max(0, STATIONS.findIndex(s => s.e === '🏠')), T = { x: STATIONS[HOME].x + TRAIN.seat, dir: 1, v: 0, vs: 0, mode: 'parked', at: HOME, target: 0, wait: 0, pending: -1, dest: -1 };
+  const seatX = () => T.x - T.dir * TRAIN.seat;
+  function nearestStation(x) { let b = 0; STATIONS.forEach((s, i) => { if (Math.abs(s.x - x) < Math.abs(STATIONS[b].x - x)) b = i; }); return b; }
+  // (build 30) the train never jumps to turn round any more (it used to move its whole body 4.5 m in one frame):
+  // it simply drives backwards when it needs to. T.vs is the signed speed of the seat along the track (+ = right).
+  const seatAt = x => { T.x = x + T.dir * TRAIN.seat; };
+  function whistle() { Sound.tone(880, .35, 'sine', .05, 1.02); Sound.tone(1100, .35, 'sine', .035, 1.02); Sound.tone(880, .3, 'sine', .04, 1.0, .4); puff(3); discover('toot', 'Toot toot!'); }
+  // big soft smoke puffs from the chimney
+  const puffs = [], puffMat = toy('#ffffff', { r: .95, cc: 0, em: '#ffffff', ei: .25, opacity: .85 });
+  for (let i = 0; i < 14; i++) { const p = new THREE.Mesh(new THREE.SphereGeometry(.2, 12, 8), puffMat.clone()); p.material.transparent = true; p.visible = false; add(p); puffs.push({ m: p, life: 0 }); }
+  let puffI = 0; const V = new THREE.Vector3();
+  function puff(n = 1) { for (let k = 0; k < n; k++) { const p = puffs[puffI++ % puffs.length]; V.copy(train.userData.chimneyTop); train.localToWorld(V); p.m.position.copy(V); p.m.position.x += (Math.random() - .5) * .2; p.life = 1; p.m.visible = true; p.vx = -T.dir * T.v * .25 + (Math.random() - .5) * .4; } }
+
+  function call(i) {
+    if (follow) { if (G.trainJoin) G.trainJoin(); return; } /* (build 102: the shared train is a friend's right now) */
+    const P = api.player; if (P.ride || P.layer !== '' || P.y > 1) { if (!(P.ride && P.ride.type === 'train')) Sound.click(); return; }
+    const st = STATIONS[i];
+    st.bells.forEach(b => { b.userData.sw = .6; }); Sound.bell(1318, .05); Sound.bell(1046, .04, .18);
+    discover('train', 'All aboard the Wonder Express! It stops at every station.');
+    if (T.mode !== 'arriving' && Math.abs(seatX() - st.x) < 1.2) { board(i); return; }
+    // (build 30) near enough: it drives over to you. Far away (so it can't be on screen): it chugs in from 26 m away.
+    const sx = seatX();
+    if (Math.abs(sx - st.x) > 40) { const from = sx < st.x ? -1 : 1; seatAt(Math.min(X1, Math.max(X0, st.x + from * 26))); if (Math.abs(seatX() - st.x) < 2) seatAt(st.x - from * 26); }
+    T.mode = 'arriving'; T.target = i; T.pending = i; whistle();
+  }
+  function board(i) {
+    const P = api.player; if (P.ride || Math.abs(P.x - STATIONS[i].x) > 6 || P.layer !== '' || P.y > 1.5) { T.mode = 'parked'; T.at = i; return; }
+    P.ride = { type: 'train' }; P.vx = P.vy = 0; P.x = STATIONS[i].x; P.y = .57; P.z = TRAIN.z; /* straight into the seat */
+    T.mode = 'driving'; T.at = i; T.v = 0;
+    Sound.chime(); burst(STATIONS[i].x, 1.2, TRAIN.z, ['#fff', '#ffd23f', '#ff8fc8'], 12, 2);
+    toast('🚂 Tap a picture to choose where to go! Or hold ▶ to drive.');
+    T.vs = 0; T.dest = -1;
+  }
+  // hop off whenever you like: the train stops and you step down onto the path
+  function hopOff() {
+    const P = api.player; if (!P.ride || P.ride.type !== 'train') return false;
+    const sx = seatX(), near = nearestStation(sx);
+    T.v = 0; T.vs = 0; T.dest = -1; T.mode = 'parked'; T.at = near;
+    P.ride = null; P.x = Math.abs(STATIONS[near].x - sx) < 2.5 ? STATIONS[near].x : sx; P.y = 0; P.vy = 0; P.vx = 0; P.grounded = true; P.groundZ = 0;
+    Sound.boing(); burst(P.x, .5, P.z, ['#fff', '#ffd23f'], 10, 2); return true;
+  }
+
+  const ACC = 6, VMAX = 12, X0 = STATIONS[0].x, X1 = STATIONS[STATIONS.length - 1].x;
+  let passed = -1;
+  function update(dt, t, P, stick, keys) {
+    const riding = P.ride && P.ride.type === 'train';
+    if (!riding && T.mode === 'driving') T.mode = 'parked';
+    for (const s of STATIONS) for (const b of s.bells) { const w = b.userData.sw || 0; if (w < .001) { if (w) { b.userData.sw = 0; b.rotation.z = 0; } continue; } b.userData.sw = w * Math.max(0, 1 - dt * 3); b.rotation.z = Math.sin(t * 18) * b.userData.sw; }
+    // move the seat towards a goal, speeding up and slowing down smoothly; returns true on arrival
+    const toward = (goal, vmax) => { const sx = seatX(), d = goal - sx, dir = Math.sign(d) || 1, stopV = Math.sqrt(Math.max(0, 2 * ACC * Math.abs(d)));
+      let sp = Math.abs(T.vs); sp = Math.min(vmax, stopV + .3, sp + ACC * dt); T.vs = dir * sp; let nx = sx + T.vs * dt;
+      if ((goal - nx) * dir <= 0 || Math.abs(d) < .02) { nx = goal; T.vs = 0; seatAt(nx); return true; } seatAt(nx); return false; };
+    if (follow) { const pv = seatX(); seatAt(follow.x); T.vs = follow.vs || (follow.x - pv) / Math.max(dt, .001) * .5; T.mode = riding && P.ride && P.ride.passenger ? 'driving' : 'remote'; if (Math.random() < dt * (1 + Math.abs(T.vs) * .8)) puff(); }
+    else if (T.mode === 'arriving') {
+      if (toward(STATIONS[T.target].x, 13)) board(T.target);
+      if (Math.random() < dt * (2 + Math.abs(T.vs))) puff();
+    } else if (T.mode === 'driving' && !(riding && P.ride && P.ride.passenger)) {
+      let d = 0;
+      if (stick && stick.active) { if (stick.dx > 30) d = 1; else if (stick.dx < -30) d = -1; }
+      if (keys.right) d = 1; if (keys.left) d = -1;
+      if (d) T.dest = -1; // (holding a direction always wins: you can take over at any time)
+      if (T.dest >= 0) { // an automatic trip to the station you picked
+        if (toward(STATIONS[T.dest].x, T.vtrip || 20)) { const k = T.dest; T.dest = -1; T.at = k; STATIONS[k].bells.forEach(b => { b.userData.sw = .6; }); Sound.chime(); api.arrived && api.arrived(k); }
+      } else if (d) { if (Math.sign(T.vs) === -d && Math.abs(T.vs) > .6) T.vs += d * ACC * 2 * dt; else T.vs = Math.max(-VMAX, Math.min(VMAX, T.vs + d * ACC * dt)); }
+      else { const s = Math.max(0, Math.abs(T.vs) - ACC * 1.3 * dt); T.vs = Math.sign(T.vs) * s; }
+      if (T.dest < 0) { const sx = seatX(); let nx = sx + T.vs * dt; if (nx < X0) { nx = X0; T.vs = 0; } if (nx > X1) { nx = X1; T.vs = 0; } seatAt(nx); }
+      const nx = seatX(), near = nearestStation(nx);
+      if (Math.abs(STATIONS[near].x - nx) < .6 && near !== passed) { passed = near; T.at = near; STATIONS[near].bells.forEach(b => { b.userData.sw = .6; }); Sound.bell(1318, .04); Sound.bell(1046, .03, .15); burst(STATIONS[near].x, 1.4, TRAIN.z, ['#fff', '#ffd23f', '#ff8fc8', '#9fe6ff'], 10, 2); }
+      if (Math.abs(STATIONS[near].x - nx) > 3) passed = -1;
+      if (Math.abs(T.vs) > .3) discover('drivetrain', 'You are driving the train! Let go to stop.');
+      if (Math.random() < dt * (1 + Math.abs(T.vs) * .8)) puff();
+    } else if (Math.random() < dt * .5) puff();
+    T.v = Math.abs(T.vs);
+    // place the train and the rider
+    train.position.set(T.x, 0, TRAIN.z); train.rotation.y = T.dir > 0 ? 0 : Math.PI;
+    const bob = T.v > .5 ? Math.sin(t * 22) * .012 : 0; train.position.y = bob;
+    train.userData.wheels.forEach(w => { w.rotation.z -= T.vs * T.dir * dt / .2; });
+    for (const p of puffs) if (p.life > 0) { p.life -= dt * 1.05; p.m.position.y += dt * (1.6 + (1 - p.life) * 1.4); p.m.position.x += p.vx * dt; p.m.scale.setScalar(1 + (1 - p.life) * 2.4); p.m.material.opacity = Math.max(0, p.life) * .8; if (p.life <= 0) p.m.visible = false; }
+    if (riding && P.ride) { train.updateMatrixWorld(true); /* (build 103: the ride can end this very frame, e.g. on arriving) */ train.userData.seats[P.ride && P.ride.passenger ? P.ride.seat : 0].getWorldPosition(V); P.x = V.x; P.y = V.y - .05; P.z = V.z; P.facing = T.vs > .3 ? 1 : T.vs < -.3 ? -1 : P.facing; P.vx = T.vs; P.grounded = true; }
+  }
+  // (build 102) RIDING THE TRAIN TOGETHER (Play Together): a friend's train is the shared one. While a friend drives, this
+  //  train follows the friend's seat (it is the same train on every screen); you can hop on as a passenger (your own seat)
+  //  when it stands at your station, and you get off together when the driver gets off.
+  let follow = null; // { x, vs } this frame, from multiplayer
+  function followFriend(x, vs) { const P = api.player, riding = P.ride && P.ride.type === 'train';
+    if (x == null) { if (follow) { follow = null; if (riding && P.ride.passenger) hopOff(); else if (!riding) { T.mode = 'parked'; T.vs = 0; T.at = nearestStation(seatX()); } } return; }
+    if (riding && !P.ride.passenger) return; follow = { x, vs: vs || 0 }; }
+  function seatWorld(k, out) { train.updateMatrixWorld(true); return train.userData.seats[Math.max(0, Math.min(3, k))].getWorldPosition(out); }
+  function boardPassenger(k) { const P = api.player; if (P.ride || P.layer !== '' || P.y > 1.5 || !follow) return false;
+    P.ride = { type: 'train', passenger: true, seat: Math.max(1, Math.min(3, k)) }; P.vx = P.vy = 0; Sound.chime(); burst(seatX(), 1.2, TRAIN.z, ['#fff', '#ffd23f', '#ff8fc8'], 12, 2);
+    toast('🚂 All aboard with your friend!'); discover('traintogether', '🚂 You rode the train together!'); return true; }
+  // (build 30) ride to a station automatically (from the picture strip)
+  function goTo(i) { const P = api.player; if (!(P.ride && P.ride.type === 'train') || i < 0 || i >= STATIONS.length) return; if (Math.abs(seatX() - STATIONS[i].x) < .5) { api.arrived && api.arrived(i); return; } T.dest = i; T.vtrip = Math.min(36, Math.max(20, Math.abs(STATIONS[i].x - seatX()) / 14)); whistle(); } // (build 34: long trips go express, up to 36 m/s, so the far end is half a minute away, not a minute)
+  return { update, call, hopOff, whistle, goTo, seatX, state: T, train, STATIONS, followFriend, boardPassenger, seatWorld, get following() { return !!follow; } };
+}

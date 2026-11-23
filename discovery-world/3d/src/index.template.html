@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dawson's World">
+<meta name="application-name" content="Dawson's World">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<meta name="theme-color" content="#7d4fd8">
+<title>Dawson's Discovery World</title>
+<style>/*__CSS__*/</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="loading"><div class="spin">★</div><b>Loading the 3D world…</b></div>
+<div id="oops" hidden><b>Oops!</b><p>The 3D world couldn't start on this device.</p><pre id="oopsMsg"></pre><button id="oopsBtn" onclick="location.reload()">Try again</button></div>
+<script>
+// Shows a friendly box (with the exact error, so it can be fixed) if anything goes wrong while starting.
+window.__oops = function (m) { var o = document.getElementById('oops'); if (!o) return; o.hidden = false; document.getElementById('oopsMsg').textContent = String(m || 'unknown error').slice(0, 400); var l = document.getElementById('loading'); if (l) l.style.display = 'none'; };
+addEventListener('error', function (e) { __oops((e.message || 'error') + (e.lineno ? ' (line ' + e.lineno + ':' + e.colno + ')' : '')); });
+addEventListener('unhandledrejection', function (e) { __oops(e.reason && e.reason.message || e.reason); });
+</script>
+<div id="flash"></div>
+<div id="top">
+  <div id="brand"><svg class="brandStar" viewBox="0 0 24 24"><path d="M12 2l3 6.6 7.2.8-5.4 4.9 1.5 7.1L12 17.8 5.7 21.4l1.5-7.1L1.8 9.4 9 8.6z"/></svg><span><small>Dawson's</small><b>Discovery World 3D</b></span></div>
+  <div id="upperRight">
+    <div class="pill" id="bitsPill" aria-label="star bits"><svg viewBox="0 0 24 24"><path d="M12 2l3 6.6 7.2.8-5.4 4.9 1.5 7.1L12 17.8 5.7 21.4l1.5-7.1L1.8 9.4 9 8.6z"/></svg><span id="bitsCount">0</span></div>
+    <div class="pill" id="fluffPill" aria-label="Fluffkins home"><span class="fluffIcon"></span><span id="fluffCount">0/6</span></div>
+    <div id="chooser">
+      <button class="creatureChoice" data-c="pip" aria-label="Pip"><img alt=""></button>
+      <button class="creatureChoice" data-c="zuzu" aria-label="Zuzu"><img alt=""></button>
+      <button class="creatureChoice" data-c="jelly" aria-label="Jelly"><img alt=""></button>
+      <button class="creatureChoice" data-c="sprout" aria-label="Sprout"><img alt=""></button>
+    </div>
+    <button class="pill" id="styleBtn" aria-label="change my creature"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.7-.8 1.7-1.6 0-1.1-.9-1.4-.9-2.4 0-.8.7-1.4 1.6-1.4H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3z" fill="#ffd1ec" stroke="#a15cff" stroke-width="1.6"/><circle cx="7.5" cy="11" r="1.6" fill="#ff4f9a"/><circle cx="10" cy="7" r="1.6" fill="#ffd23f"/><circle cx="14.5" cy="7" r="1.6" fill="#3cc46e"/><circle cx="17" cy="11" r="1.6" fill="#3d9bff"/></svg></button>
+    <button class="pill" id="soundBtn" aria-label="sound"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><path class="spk" d="M4 9h4l5-4v14l-5-4H4z"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.6 6a8.5 8.5 0 0 1 0 12"/><path class="cross" d="M16 9l5 6M21 9l-5 6"/></svg></button>
+  </div>
+</div>
+<div id="toast"></div>
+<div id="stick"><div id="knob"></div></div>
+<div id="paintTools"></div>
+<div id="buildTools"></div>
+<div id="stylePanel"><div class="spRow" id="styleCols"></div><div class="spRow"><button id="sparkleBtn" class="spBig">✨</button><button id="styleDone" class="spBig done">✓</button></div></div>
+<div id="bottom">
+  <div class="dpad">
+    <button class="ctrl arrow up" id="upBtn" aria-label="up"><svg viewBox="0 0 24 24"><path d="M5 15l7-7 7 7"/></svg></button>
+    <button class="ctrl arrow left" id="leftBtn" aria-label="left"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button class="ctrl arrow right" id="rightBtn" aria-label="right"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+    <button class="ctrl arrow down" id="downBtn" aria-label="down"><svg viewBox="0 0 24 24"><path d="M5 9l7 7 7-7"/></svg></button>
+  </div>
+  <div class="controls">
+    <button class="ctrl paw" id="pawBtn" aria-label="do it"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="15.5" rx="5" ry="4.2"/><circle cx="6" cy="9.5" r="2.2"/><circle cx="10" cy="6.2" r="2.2"/><circle cx="14" cy="6.2" r="2.2"/><circle cx="18" cy="9.5" r="2.2"/></svg></button>
+    <button class="ctrl jump" id="jumpBtn" aria-label="jump"><svg viewBox="0 0 24 24"><path d="M12 4l7 8h-4v7H9v-7H5z"/></svg></button>
+  </div>
+</div>
+<div id="overlay">
+  <div id="intro">
+    <div class="eyebrow">A magical world to explore</div>
+    <h1>Dawson's <span>Discovery World</span> 3D</h1>
+    <div class="previewCrew">
+      <button class="introPick" data-c="pip"><img alt=""><b>Pip</b></button>
+      <button class="introPick" data-c="zuzu"><img alt=""><b>Zuzu</b></button>
+      <button class="introPick" data-c="jelly"><img alt=""><b>Jelly</b></button>
+      <button class="introPick" data-c="sprout"><img alt=""><b>Sprout</b></button>
+    </div>
+    <button id="playBtn">LET'S PLAY ▶</button>
+  </div>
+</div>
+<div id="rotate"><div class="phone"><div class="screen">★</div></div><b>Turn your phone sideways</b></div>
+<script>/*__JS__*/</script>
+<script>
+// Home-screen app: keep a copy for offline play (only on the real website, not when opened as a file or preview).
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && window.top === window.self) addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () { }); });
+</script>
+</body>
+</html>
