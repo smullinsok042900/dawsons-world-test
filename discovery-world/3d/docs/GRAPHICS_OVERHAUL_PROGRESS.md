@@ -9,7 +9,7 @@ Working repository: `smullinsok042900/dawsons-world-test` (this repo). The origi
 |---|---|
 | 1. Audit of rendering / placement / performance systems | **Done for the shared engine** (renderer, world, nature, water, assets, perf). Per-environment visual audit still outstanding. |
 | 2. Shared engine improvements | **First stage done and verified**: collision spatial index, scene auditor, texture filtering, water ripple/reflection upgrade. |
-| 3. Per-environment visual overhaul | **Started**: Playhouse + Park detail added (2 of 26 areas). |
+| 3. Per-environment visual overhaul | **Started**: Playhouse, Park, Castle, Dino Valley detail added (4 of 26 areas). |
 | 4. Geometry / collision corrections | **Tooling done and run**; confirmed issues not yet fixed (see audit results). |
 | 5. Performance optimisation | **Collision indexing done**; renderer/LOD tuning outstanding. |
 | 6. Verification | Unit tests (17) + build + headless load/audit run pass. Full browser suite is not re-run every stage (35 min of software WebGL). |
@@ -79,6 +79,43 @@ settles differently):
 
 Park triangles rise ~7% for ~190 flowers, 9 boulders and 6 lamps; draw calls rise by 6 because
 merged/instanced geometry keeps the additions to a handful of batches. Playhouse is +3 calls.
+
+## Stage 3: Princess Castle and Dino Valley (implemented, measured)
+
+Both live in `kingdom.js`; the detail builders are in `scenery-detail.js` and are wired with the
+same `?nodetail` switch, so the A/B measurement is repeatable.
+
+- **Castle:** two formal parterre beds (gravel tray, trimmed hedge border) with 24 rose bushes and
+  72 blooms, four stone urns with flowering tops flanking the walk, and a string of 11 warm
+  lanterns along the front.
+- **Dino Valley:** 95 ferns (one merged frond, instanced), three mossy boulder clusters merged into
+  one mesh, a fallen log with moss and six mushrooms, and eight three-toed footprints along the
+  path.
+
+**Measurement method (changed in this stage).** Reading `renderer.info` while the game loop runs
+is not reliable here: at ~1.2 fps under software WebGL a reading spans half a second, and slice
+merging/grass streaming changes the totals between reads (Dino Valley read 156 vs 227 calls purely
+from stream timing). Each group is now measured with two explicit single-frame renders, one with
+the group visible and one without, `renderer.info.reset()` before each:
+
+| Area | Added meshes (batches) | Added triangles | Δ draw calls | Δ triangles |
+|---|---|---|---|---|
+| Playhouse | 8 | 1,376 | **+3** | **+488** |
+| Park | 5 | 48,692 | **+5** | **+48,692** |
+| Castle | 7 | 13,660 | **+7** | **+13,660** |
+| Dino Valley | 5 | 3,960 | **+5** | **+3,960** |
+
+Park/Playhouse were re-measured with the same method, so all four rows are comparable. (The
+earlier Park reading of +6 calls included one stream-timing artefact.) Each batch adds exactly one
+draw call, and the triangle delta equals the group's geometry exactly.
+
+## Two merge blocks replaced with `mergeGeometries`
+
+`scenery-detail.js` had three hand-written merge loops (flower heads, boulders, lamp posts) that
+concatenated positions/normals/colours and re-based indices by hand. They now call the project's
+existing `mergeGeometries` helper through one `mergeParts()` wrapper that disposes the pieces and
+degrades to `null` instead of throwing. Output geometry is identical (same triangle counts); the
+file is ~80 lines shorter and the new Castle/Dino builders reuse the same helper.
 
 ## Environment inventory (for the visual pass)
 

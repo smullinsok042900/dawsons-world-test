@@ -23,6 +23,7 @@ import { plush, quadSpec, personSpec } from './critterkit.js';
 import { fabricMat, normalFromCanvas, leafDetail } from './nature.js';
 import { USE_ASSETS, brickSet, landmarksReady } from './assets.js';
 import { macroVariation } from './refine.js';
+import { buildCastleDetail, buildDinoDetail } from './scenery-detail.js';
 
 // pastel stone bricks with soft bumps (castle walls), and scalloped roof tiles
 function brickMat(world) {
@@ -148,6 +149,8 @@ export function initKingdom(G, api) {
   }
   for (const [x, z, r] of [[360.5, -3.2, .5], [366.2, -3.6, .35], [388.2, -4, .6], [394.2, -3.3, .4]]) add(ball(toy('#c9b8d8', { r: .8, cc: .1 }), r, x, r * .5, z, 1.3, .8, 1));
 
+  if (!/[?&]nodetail/.test(location.search)) G.dinoDetail = buildDinoDetail({ add, dx: K.dino }); // (?nodetail = A/B measurement)
+
   // =================== PRINCESS CASTLE ===================
   const C = new THREE.Group(); C.position.set(K.castle, 0, 0); add(C);
   const LEG = new THREE.Group(); C.add(LEG); // (build 22: the old castle structure: the light test mode and the fallback; the Blender castle replaces it)
@@ -235,6 +238,7 @@ export function initKingdom(G, api) {
       const mm = new THREE.Mesh(one, list[0].material); mm.castShadow = list[0].castShadow; mm.receiveShadow = true; C.add(mm);
       for (const m of list) { C.remove(m); m.geometry.dispose(); } merged += list.length; }
     G.castleMerged = merged; }
+  if (!/[?&]nodetail/.test(location.search)) G.castleDetail = buildCastleDetail({ add, cx: K.castle }); // (?nodetail = A/B measurement)
 
   // the royal fountain
   const fx = K.castle + 9.5, fz = -2.6;

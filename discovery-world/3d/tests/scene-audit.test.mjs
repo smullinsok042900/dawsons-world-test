@@ -50,6 +50,14 @@ t('stacked surfaces far enough apart are not reported', () => {
   assert.equal(auditScene({ scene }).zfight.count, 0);
 });
 
+t('raised slabs whose boxes overlap are not flat z-fight surfaces', () => {
+  const scene = new THREE.Scene();
+  const a = mesh(new THREE.BoxGeometry(6, .06, 2), [0, .03, 0]);
+  const b = mesh(new THREE.BoxGeometry(2, .06, 2), [1, .03, 0]);
+  scene.add(a, b);
+  assert.equal(auditScene({ scene }).zfight.count, 0);
+});
+
 t('fur shells (skinned meshes sharing one geometry) are not duplicates', () => {
   const scene = new THREE.Scene();
   const geo = new THREE.BoxGeometry(1, 1, 1);

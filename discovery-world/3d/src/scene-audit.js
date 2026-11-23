@@ -63,7 +63,10 @@ export function auditScene({ scene, solids = [], platforms = [], maxSamples = 6 
       geometryKey: o.geometry ? (o.geometry.uuid || '') : '',
       matrixKey: keyForMatrix(o.matrixWorld),
       materialKey: mat ? (mat.uuid || '') : '',
-      horizontal: opaque && info.size.y < .08 && info.size.x * info.size.z > .035,
+      // (stage 3) only truly flat surfaces: sliced scenery merges neighbouring slabs into one
+      // mesh, and two merged slabs at the same height have overlapping BOXES while their
+      // actual tops never touch, which used to be reported as z-fighting.
+      horizontal: opaque && info.size.y < .02 && info.size.x * info.size.z > .035,
       dynamic: !!o.userData.dynamic, opaque,
     });
   });
