@@ -9,9 +9,11 @@ remove it here and record it in `DEVELOPMENT_LOG.md`. Add new findings (bugs, id
   draft, carries stages 1–9. Never merge automatically, never push to the original `main`.
 - After every stage: commit and push to `dawsons-world-test`, then run the `Sync the 3D overhaul` workflow on the
   branch (it copies the paths, runs the focused tests, rebuilds `index.html`, commits) and confirm the PR moved.
-- **Exact next task:** Stage 10 — Art Plaza graphics pass (see the stage list below): paint-splashed plaza floor with
-  kerbed planters, easels and drying racks, hanging gallery banners, a working fountain basin, and the market stalls'
-  trim; measure with the capture harness, then sync the same PR.
+- **Done:** Stage 10 — Art Plaza gallery yard (painted paving, four planters, two easels, drying rack, paint pots,
+  bunting): 10 meshes / 4,262 tris, audit clean, screenshots in `docs/screenshots/stage10/`.
+- **Exact next task:** Stage 11 — Sunny Seaside graphics pass: layered surf and wet sand at the waterline, beach
+  umbrellas and towels, a pier railing with posts and lamps, gulls and beach balls; capture before/after at x −120 and
+  −90, run the audit, then sync the same PR.
 
 
 ## Active family request: the next thirty creations

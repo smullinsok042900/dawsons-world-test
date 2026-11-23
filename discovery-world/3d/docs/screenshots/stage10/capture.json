@@ -1,0 +1,69 @@
+{
+  "url": "file:///workspace/chats/239bbbd65cda24ad89787673/discovery-world/3d/index.html",
+  "shots": [
+    {
+      "name": "after-artplaza",
+      "x": 850,
+      "info": {
+        "calls": 82,
+        "tris": 159508,
+        "geos": 1315,
+        "progs": 157
+      },
+      "models": {
+        "art": {
+          "error": "o.traverse is not a function"
+        },
+        "audit": {
+          "error": "o.traverse is not a function"
+        }
+      }
+    },
+    {
+      "name": "after-artplaza-wide",
+      "x": 815,
+      "info": {
+        "calls": 78,
+        "tris": 157248,
+        "geos": 1324,
+        "progs": 159
+      },
+      "models": {
+        "art": {
+          "error": "o.traverse is not a function"
+        },
+        "audit": {
+          "error": "o.traverse is not a function"
+        }
+      }
+    },
+    {
+      "name": "after-artplaza-rack",
+      "x": 868,
+      "info": {
+        "calls": 82,
+        "tris": 55084,
+        "geos": 1343,
+        "progs": 159
+      },
+      "models": {
+        "art": {
+          "error": "o.traverse is not a function"
+        },
+        "audit": {
+          "error": "o.traverse is not a function"
+        }
+      }
+    }
+  ],
+  "models": {
+    "art": {
+      "error": "Cannot read properties of undefined (reading 'traverse')"
+    },
+    "audit": {
+      "error": "o.traverse is not a function"
+    }
+  },
+  "errors": [],
+  "oops": false
+}
