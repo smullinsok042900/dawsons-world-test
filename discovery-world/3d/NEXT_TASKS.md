@@ -31,8 +31,10 @@ remove it here and record it in `DEVELOPMENT_LOG.md`. Add new findings (bugs, id
 - **Done:** Stage 18 — Playhouse (curtained stage with backdrop and six footlights, prop chest, reading nook with
   pillows and book box, two lanterns): `playhouse-detail` 17 meshes / 3,588 tris, audit 0 z-fighting, screenshots in
   `docs/screenshots/stage18/`.
-- **Exact next task:** Stage 19 — Studio: easel wall with drying canvases, a pottery wheel with finished pots and a
-  paint-splattered workbench; capture at x 62 and 80, run `node tools/audit.cjs 62 80`, then sync the same PR.
+- **Done:** Stage 19 — Studio (easel wall with five canvases, pottery wheel with four pots, paint-splattered workbench):
+  `studio-detail` 4 meshes / 1,222 tris, audit 0 z-fighting, screenshots in `docs/screenshots/stage19/`.
+- **Exact next task:** Stage 20 — Wonder Lab: glass tube bench with bubbling flasks, specimen shelves and a
+  microscope table; capture at x 100 and 118, run `node tools/audit.cjs 100 118`, then sync the same PR.
 - **Tooling now available (2026-11-23):** `@gltf-transform/cli` 4.5.1 is a devDependency; KTX-Software `ktx`
   v4.4.2 is at `~/ktx/bin` (ETC1S/Basis verified on `tree_0.glb`, output valid `KHR_texture_basisu`); Blender
   4.2.3 LTS runs headless from `~/blender-4.2.3-linux-x64` with user-space libs. KTX2 is **not** wired into
