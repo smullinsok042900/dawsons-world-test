@@ -36,9 +36,11 @@ remove it here and record it in `DEVELOPMENT_LOG.md`. Add new findings (bugs, id
 - **Done:** Stage 20 — Wonder Lab (glass-tube bench with burner tripod and bubbling flasks, three-tier specimen
   shelves, microscope table with slide box and stool, glass cabinet): `lab-detail` 6 meshes / 10,332 tris, audit
   0 z-fighting, screenshots in `docs/screenshots/stage20/`.
-- **Exact next task:** Stage 21 — the Moon first of the planet pass (crater rims and ejecta rays, layered regolith
-  colours), then Mercury → Venus → Mars → Jupiter → Saturn → Uranus → Pluto; capture from the planet approach, run
-  both tests and `node tools/audit.cjs`, then sync the same PR.
+- **Done:** Stage 21 — the Moon (crater rims with bright ejecta rays, layered regolith colours, 37 new craters and 54
+  pebbles): ground mesh 1 mesh / 25,904 tris, audit 0 z-fighting, screenshots in `docs/screenshots/stage21/`.
+- **Exact next task:** Stage 22 — Mercury (crater rims and ejecta, layered regolith colours); capture with
+  `node tools/capture.cjs docs/screenshots/stage22 '[[…,…]]' --place mercury`, run both tests and
+  `node tools/audit.cjs --place mercury …`, then sync the same PR.
 - **Tooling now available (2026-11-23):** `@gltf-transform/cli` 4.5.1 is a devDependency; KTX-Software `ktx`
   v4.4.2 is at `~/ktx/bin` (ETC1S/Basis verified on `tree_0.glb`, output valid `KHR_texture_basisu`); Blender
   4.2.3 LTS runs headless from `~/blender-4.2.3-linux-x64` with user-space libs. KTX2 is **not** wired into
