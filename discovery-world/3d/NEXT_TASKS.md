@@ -13,8 +13,12 @@ remove it here and record it in `DEVELOPMENT_LOG.md`. Add new findings (bugs, id
   bunting): 10 meshes / 4,262 tris, audit clean, screenshots in `docs/screenshots/stage10/`.
 - **Done:** Stage 11 — Sunny Seaside shoreline (five striped parasols with towels and beach balls, dune grass,
   driftwood): 4 meshes / 8,064 tris, audit clean, screenshots in `docs/screenshots/stage11/`.
-- **Exact next task:** Stage 12 — Whispering Woods: layered canopy with real trunks and branches, bark material,
-  undergrowth and a campfire clearing; capture before/after at x −200 and −250, run the audit, then sync the same PR.
+- **Done:** Stage 12 — Whispering Woods forest (nine trees with limbs and four-layer crowns, fern understory,
+  campfire clearing with benches and woodpile): 4 meshes / 22,256 tris, audit clean, screenshots in
+  `docs/screenshots/stage12/`. `tools/audit.cjs` added (audit at coordinates via CDP-safe harness).
+- **Exact next task:** Stage 13 — Frosty Peaks: snow-capped ridges and drifts, snow-loaded pine stands, an ice arch
+  and a sledding slope; capture before/after at x −320 and −370, run `node tools/audit.cjs -320 -370`, then sync the
+  same PR.
 - **Tooling now available (2026-11-23):** `@gltf-transform/cli` 4.5.1 is a devDependency; KTX-Software `ktx`
   v4.4.2 is at `~/ktx/bin` (ETC1S/Basis verified on `tree_0.glb`, output valid `KHR_texture_basisu`); Blender
   4.2.3 LTS runs headless from `~/blender-4.2.3-linux-x64` with user-space libs. KTX2 is **not** wired into
