@@ -38,9 +38,10 @@ remove it here and record it in `DEVELOPMENT_LOG.md`. Add new findings (bugs, id
   0 z-fighting, screenshots in `docs/screenshots/stage20/`.
 - **Done:** Stage 21 — the Moon (crater rims with bright ejecta rays, layered regolith colours, 37 new craters and 54
   pebbles): ground mesh 1 mesh / 25,904 tris, audit 0 z-fighting, screenshots in `docs/screenshots/stage21/`.
-- **Done:** Stage 22 — Mercury (deeper crater bowls with bright rims, capped ejecta rays, layered regolith, bright
-  volatile hollows, 37 new craters and 46 pebbles): ground mesh 1 mesh / 25,864 tris, audit 0 z-fighting,
-  screenshots in `docs/screenshots/stage22/`.
+- **Done:** Stage 22 — Mercury (224x88 terrain grid, 3-5 m bowls with low bright rims, two showpiece ray craters beside
+  the walkway, ray lanes with dark gaps, layered regolith, volatile hollows, 37 new craters, 46 pebbles): ground mesh
+  1 mesh / 51,464 tris, audit clean apart from the pre-existing y 0.029 seam, screenshots in
+  `docs/screenshots/stage22/`.
 - **Exact next task:** Stage 23 — Venus (layered cloud bands, horizon atmosphere and the lava-country palette); capture
   with `node tools/capture.cjs docs/screenshots/stage23 '[[…,…]]' --place venus`, run both tests and
   `node tools/audit.cjs --place venus …`, then sync the same PR.
