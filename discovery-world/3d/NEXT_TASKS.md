@@ -26,8 +26,10 @@ remove it here and record it in `DEVELOPMENT_LOG.md`. Add new findings (bugs, id
   `docs/screenshots/stage15/`.
 - **Done:** Stage 16 — Balloon Hills (three moored balloons with baskets and stakes, two bunting lines, wildflower
   drifts, two terrace shelves): 6 meshes / 10,616 tris, audit 0 z-fighting, screenshots in `docs/screenshots/stage16/`.
-- **Exact next task:** Stage 17 — Adventure Trail: rope-bridge planks and handrails, cliff strata, waterfall mist and
-  a lookout deck; capture before/after at x 470 and 520, run `node tools/audit.cjs 470 520`, then sync the same PR.
+- **Done:** Stage 17 — Adventure Trail (bridge handrails, two stratified cliffs, waterfall with basin and mist, lookout
+  deck): 5 meshes / 2,512 tris, audit 0 z-fighting, screenshots in `docs/screenshots/stage17/`.
+- **Exact next task:** Stage 18 — Playhouse: stage curtains and footlights, a prop chest, hanging lanterns and a
+  cushioned reading nook; capture before/after at x 70 and 90, run `node tools/audit.cjs 70 90`, then sync the same PR.
 - **Tooling now available (2026-11-23):** `@gltf-transform/cli` 4.5.1 is a devDependency; KTX-Software `ktx`
   v4.4.2 is at `~/ktx/bin` (ETC1S/Basis verified on `tree_0.glb`, output valid `KHR_texture_basisu`); Blender
   4.2.3 LTS runs headless from `~/blender-4.2.3-linux-x64` with user-space libs. KTX2 is **not** wired into
