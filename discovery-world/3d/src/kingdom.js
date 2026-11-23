@@ -23,7 +23,7 @@ import { plush, quadSpec, personSpec } from './critterkit.js';
 import { fabricMat, normalFromCanvas, leafDetail } from './nature.js';
 import { USE_ASSETS, brickSet, landmarksReady } from './assets.js';
 import { macroVariation } from './refine.js';
-import { buildCastleDetail, buildDinoDetail } from './scenery-detail.js';
+import { buildCastleDetail, buildCastleInteriorDetail, buildDinoDetail } from './scenery-detail.js';
 
 // pastel stone bricks with soft bumps (castle walls), and scalloped roof tiles
 function brickMat(world) {
@@ -310,7 +310,8 @@ export function initKingdom(G, api) {
     const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(CI.w / 2, 6); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
     const fl = new THREE.Mesh(new THREE.PlaneGeometry(CI.w, 12), new THREE.MeshPhysicalMaterial({ map: t, roughness: .2, clearcoat: 1, clearcoatRoughness: .08 })); fl.rotation.x = -Math.PI / 2; fl.position.set(CI.w / 2, 0, 0); fl.receiveShadow = true; IC.add(fl);
     const carpet = new THREE.Mesh(new THREE.PlaneGeometry(CI.w - 2, 1.5), toy('#e0457a', { r: .9, cc: 0, sheen: 1, sheenColor: '#ff9fc8' })); carpet.rotation.x = -Math.PI / 2; carpet.position.set(CI.w / 2, .012, 0); carpet.receiveShadow = true; IC.add(carpet);
-    for (const z of [-.8, .8]) { const b = new THREE.Mesh(new THREE.PlaneGeometry(CI.w - 2, .12), goldM); b.rotation.x = -Math.PI / 2; b.position.set(CI.w / 2, .014, z); IC.add(b); }
+    // (stage 3: the trim sits 2 cm above the carpet; at 2 mm the two planes flickered)
+    for (const z of [-.8, .8]) { const b = new THREE.Mesh(new THREE.PlaneGeometry(CI.w - 2, .12), goldM); b.rotation.x = -Math.PI / 2; b.position.set(CI.w / 2, .022, z); IC.add(b); }
     const backW = new THREE.Mesh(new RoundedBoxGeometry(CI.w + .8, 9.5, .5, 2, .15), toy('#ffe3f1', { r: .6, cc: .3 })); backW.position.set(CI.w / 2, 4.75, -5.8); backW.receiveShadow = true; IC.add(backW);
     const skirting = new THREE.Mesh(new RoundedBoxGeometry(CI.w + .8, .6, .3, 2, .1), trimM); skirting.position.set(CI.w / 2, .3, -5.45); IC.add(skirting);
     for (const x of [-.25, CI.w + .25]) { const sw = new THREE.Mesh(new RoundedBoxGeometry(.5, 9.5, 12, 2, .15), toy('#ffd6ec', { r: .6, cc: .3 })); sw.position.set(x, 4.75, 0); sw.receiveShadow = true; IC.add(sw); }
@@ -384,6 +385,7 @@ export function initKingdom(G, api) {
       const m = kind === 0 ? ball(toy(col, { r: .2, cc: 1 }), .16) : kind === 1 ? new THREE.Mesh(starGeometry(.2, .09, .08, .02, 1), toy(col, { em: col, ei: .2 })) : new THREE.Mesh(new RoundedBoxGeometry(.28, .28, .28, 2, .06), toy(col)); m.castShadow = true;
       m.position.set(CI.ox + 23, 1, -2.6); add(m); toysOut.push({ m, vx: (Math.random() - .5) * 3, vy: 4 + Math.random() * 3, vz: 1 + Math.random() * 1.5, life: 3 }); }
     discover('toychest', 'A treasure chest full of toys!'); }, 22.5, 'toychest', 1.8);
+  if (!/[?&]nodetail/.test(location.search)) G.castleInteriorDetail = buildCastleInteriorDetail({ add, ox: CI.ox }); // (?nodetail = A/B measurement)
   // getting in and out
   function enterCastle() { const P = api.player; if (P.ride || P.layer !== '' || Math.abs(P.x - K.castle) > 5) { Sound.click(); return; } world.flash = 1; P.layer = 'castle'; P.x = CI.ox + 2.8; P.y = 0; P.z = 0; P.vx = P.vy = 0; P.grounded = true; api.snapCamera(); Sound.chime(); discover('castlein', 'Inside the Princess Castle! Tap the throne, the cake, the music box and the toy chest.'); }
   function leaveCastle() { const P = api.player; if (P.layer !== 'castle' || P.y > .7) { Sound.click(); return; } world.flash = 1; P.layer = ''; P.x = K.castle; P.y = 0; P.z = 0; P.vx = P.vy = 0; api.snapCamera(); Sound.tone(440, .2, 'triangle', .05, .7); }

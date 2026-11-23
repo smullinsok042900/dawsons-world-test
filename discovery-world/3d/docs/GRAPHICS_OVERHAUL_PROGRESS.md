@@ -9,7 +9,7 @@ Working repository: `smullinsok042900/dawsons-world-test` (this repo). The origi
 |---|---|
 | 1. Audit of rendering / placement / performance systems | **Done for the shared engine** (renderer, world, nature, water, assets, perf). Per-environment visual audit still outstanding. |
 | 2. Shared engine improvements | **First stage done and verified**: collision spatial index, scene auditor, texture filtering, water ripple/reflection upgrade. |
-| 3. Per-environment visual overhaul | **Started**: Playhouse, Park, Castle, Dino Valley detail added (4 of 26 areas). |
+| 3. Per-environment visual overhaul | **Started**: Playhouse, Park, Castle front, Castle throne room and Dino Valley detail added (5 of 26 areas). |
 | 4. Geometry / collision corrections | **Tooling done and run**; confirmed issues not yet fixed (see audit results). |
 | 5. Performance optimisation | **Collision indexing done**; renderer/LOD tuning outstanding. |
 | 6. Verification | Unit tests (17) + build + headless load/audit run pass. Full browser suite is not re-run every stage (35 min of software WebGL). |
@@ -104,18 +104,38 @@ the group visible and one without, `renderer.info.reset()` before each:
 | Park | 5 | 48,692 | **+5** | **+48,692** |
 | Castle | 7 | 13,660 | **+7** | **+13,660** |
 | Dino Valley | 5 | 3,960 | **+5** | **+3,960** |
+| Castle throne room | 6 | 7,312 | **+6** | **+7,312** |
 
 Park/Playhouse were re-measured with the same method, so all four rows are comparable. (The
 earlier Park reading of +6 calls included one stream-timing artefact.) Each batch adds exactly one
 draw call, and the triangle delta equals the group's geometry exactly.
 
-## Two merge blocks replaced with `mergeGeometries`
+## Stage 4: the throne room (implemented, measured)
+
+`buildCastleInteriorDetail` in `scenery-detail.js`, called from `kingdom.js` with the interior's own
+origin (`CI.ox`, x 2000), so everything is placed in throne-room coordinates:
+
+- velvet ropes lining the carpet aisle: 10 gold posts and 32 sagging rope segments (posts merged,
+  ropes merged — the ropes are built with a small point-to-point cylinder helper);
+- four potted palms against the back wall (pot, lip, trunk and seven fronds per palm, all merged);
+- four velvet banners with gold rails and crests above the stained glass;
+- six wrapped party gifts with ribbons and bows behind the cake (merged with vertex colours);
+- twelve candle flames on the throne steps (one instanced mesh).
+
+Measured the same single-frame way, from inside the room: **+6 draw calls, +7,312 triangles**, exactly
+the group's geometry.
+
+While measuring, the audit reported two coplanar pairs in the room: the existing carpet at y .012
+and its gold trim at y .014 — a 2 mm gap, which can flicker at this scale. The trim now sits at
+y .022. The audit for the room is now **0 duplicates, 0 z-fighting, collisions clean**.
+
+## Merge helper instead of hand-written loops
 
 `scenery-detail.js` had three hand-written merge loops (flower heads, boulders, lamp posts) that
 concatenated positions/normals/colours and re-based indices by hand. They now call the project's
 existing `mergeGeometries` helper through one `mergeParts()` wrapper that disposes the pieces and
 degrades to `null` instead of throwing. Output geometry is identical (same triangle counts); the
-file is ~80 lines shorter and the new Castle/Dino builders reuse the same helper.
+file is ~80 lines shorter and every later builder reuses the same helper.
 
 ## Environment inventory (for the visual pass)
 

@@ -311,3 +311,111 @@ export function buildDinoDetail({ scene, add, dx = 378, rnd }) {
 
   return { group, added: { ferns: fernSpots.length, boulders: rockParts.length, mushrooms: 6, footprints: 8 } };
 }
+
+/** a cylinder between two points (used for the velvet ropes) */
+function barBetween(ax, ay, az, bx, by, bz, r, hex, radial = 6) {
+  const a = new THREE.Vector3(ax, ay, az), b = new THREE.Vector3(bx, by, bz);
+  const len = a.distanceTo(b), mid = a.clone().add(b).multiplyScalar(.5);
+  const g = new THREE.CylinderGeometry(r, r, len, radial);
+  g.translate(0, len / 2, 0);
+  g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), b.clone().sub(a).normalize()));
+  g.translate(mid.x, mid.y, mid.z);
+  return tinted(g, hex);
+}
+
+export function buildCastleInteriorDetail({ add, ox = 2000 }) {
+  const group = new THREE.Group(); group.name = 'castle-interior-detail'; group.position.set(ox, 0, 0); add(group);
+  let seed = 11235813;
+  const rr = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+  const mtx = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), pos = new THREE.Vector3(), scl = new THREE.Vector3();
+
+  // --- velvet ropes lining the carpet aisle: gold posts, sagging red rope (2 merged meshes)
+  const postParts = [], ropeParts = [];
+  const POST_X = [3.2, 6.4, 9.6, 12.8, 16];
+  for (const z of [-1.55, 1.55]) {
+    for (const x of POST_X) {
+      const base = new THREE.CylinderGeometry(.14, .19, .12, 10); base.translate(x, .06, z);
+      const post = new THREE.CylinderGeometry(.045, .055, .92, 8); post.translate(x, .56, z);
+      const knob = new THREE.SphereGeometry(.1, 12, 9); knob.translate(x, 1.06, z);
+      postParts.push(tinted(base, '#c9a24a'), tinted(post, '#e0bb62'), tinted(knob, '#f2d488'));
+      base.dispose(); post.dispose(); knob.dispose();
+    }
+    for (let i = 0; i < POST_X.length - 1; i++) {
+      const x0 = POST_X[i], x1 = POST_X[i + 1], y0 = .98, sag = .26;
+      const N = 4;
+      for (let s = 0; s < N; s++) {
+        const u0 = s / N, u1 = (s + 1) / N;
+        const y = u => y0 - Math.sin(u * Math.PI) * sag;
+        ropeParts.push(barBetween(x0 + (x1 - x0) * u0, y(u0), z, x0 + (x1 - x0) * u1, y(u1), z, .035, '#c8325f', 6));
+      }
+    }
+  }
+  const posts = new THREE.Mesh(mergeParts(postParts), new THREE.MeshStandardMaterial({ vertexColors: true, metalness: .65, roughness: .3 }));
+  posts.castShadow = true; group.add(posts);
+  const ropes = new THREE.Mesh(mergeParts(ropeParts), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .85, sheen: .6 }));
+  group.add(ropes);
+
+  // --- potted palms beside the back wall (one merged mesh: terracotta pot + fronds + trunk)
+  const palmParts = [];
+  for (const [px, pz] of [[2.6, -4.25], [10.9, -4.25], [16.5, -4.25], [22.2, -4.25]]) {
+    const pot = new THREE.CylinderGeometry(.26, .2, .52, 14); pot.translate(px, .26, pz);
+    const lip = new THREE.TorusGeometry(.26, .045, 8, 18); lip.rotateX(Math.PI / 2); lip.translate(px, .52, pz);
+    const trunk = new THREE.CylinderGeometry(.055, .075, .55, 8); trunk.translate(px, .8, pz);
+    palmParts.push(tinted(pot, '#c97a52'), tinted(lip, '#b86743'), tinted(trunk, '#7a5a3a'));
+    pot.dispose(); lip.dispose(); trunk.dispose();
+    for (let f = 0; f < 7; f++) {
+      const a = f / 7 * Math.PI * 2 + rr() * .2;
+      const blade = new THREE.PlaneGeometry(.13, .78, 1, 2);
+      blade.translate(0, .39, 0);
+      blade.rotateX(-.75 - rr() * .25);
+      blade.rotateY(a);
+      blade.translate(px, 1.06, pz);
+      palmParts.push(tinted(blade, f % 2 ? '#3f8f4a' : '#4f9f5a'));
+      blade.dispose();
+    }
+  }
+  const palms = new THREE.Mesh(mergeParts(palmParts), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .8, side: THREE.DoubleSide }));
+  palms.castShadow = true; palms.receiveShadow = true; group.add(palms);
+
+  // --- four velvet banners with gold rails, hung above the stained glass
+  const bannerParts = [];
+  for (const [bx, col] of [[3.4, '#b02a5a'], [9.1, '#7a3fb0'], [14.9, '#2a6fb0'], [20.2, '#b02a5a']]) {
+    const rail = new THREE.CylinderGeometry(.045, .045, 1.1, 8); rail.rotateZ(Math.PI / 2); rail.translate(bx, 8.75, -5.5);
+    const cloth = new THREE.PlaneGeometry(.9, 2.1, 4, 6);
+    const cp = cloth.attributes.position;
+    for (let i = 0; i < cp.count; i++) { const x = cp.getX(i), y = cp.getY(i); cp.setZ(i, Math.sin((x / .9 + .5) * Math.PI) * .06 + Math.sin((y / 2.1 + .5) * Math.PI * 2) * .03); }
+    cloth.computeVertexNormals(); cloth.translate(bx, 7.7, -5.5);
+    const crest = new THREE.CircleGeometry(.16, 18); crest.translate(bx, 8.05, -5.44);
+    bannerParts.push(tinted(rail, '#e0bb62'), tinted(cloth, col), tinted(crest, '#f2d488'));
+    rail.dispose(); cloth.dispose(); crest.dispose();
+  }
+  const banners = new THREE.Mesh(mergeParts(bannerParts), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .85, side: THREE.DoubleSide }));
+  group.add(banners);
+
+  // --- a pile of wrapped party gifts behind the cake (one merged mesh, ribbons included)
+  const giftParts = [];
+  const giftCols = ['#ff5f9a', '#5fb8ff', '#ffd23f', '#7fd6a0', '#b28cff', '#ff9a5a'];
+  for (let i = 0; i < 6; i++) {
+    const w = .28 + rr() * .26, h = .24 + rr() * .22, d = .28 + rr() * .22;
+    const gx = 7.4 + (i % 3) * .62 + rr() * .1, gz = -4.05 + Math.floor(i / 3) * .5 + rr() * .06;
+    const box = new THREE.BoxGeometry(w, h, d); box.translate(gx, h / 2, gz);
+    const rib1 = new THREE.BoxGeometry(.05, h + .01, d + .01); rib1.translate(gx, h / 2, gz);
+    const rib2 = new THREE.BoxGeometry(w + .01, h + .01, .05); rib2.translate(gx, h / 2, gz);
+    const bow = new THREE.SphereGeometry(.07, 10, 7); bow.scale(1.4, .5, 1.1); bow.translate(gx, h + .03, gz);
+    giftParts.push(tinted(box, giftCols[i % giftCols.length]), tinted(rib1, '#fff6cf'), tinted(rib2, '#fff6cf'), tinted(bow, '#fff6cf'));
+    box.dispose(); rib1.dispose(); rib2.dispose(); bow.dispose();
+  }
+  const gifts = new THREE.Mesh(mergeParts(giftParts), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .6 }));
+  gifts.castShadow = true; gifts.receiveShadow = true; group.add(gifts);
+
+  // --- candle clusters on the throne steps (instanced flames, one draw call)
+  const flameSpots = [];
+  for (const [cx, cz] of [[17.9, -4.25], [21.1, -4.25], [17.9, -2.35], [21.1, -2.35]]) {
+    for (let i = 0; i < 3; i++) flameSpots.push([cx + (i - 1) * .16 + rr() * .05, .42 + .18 * (i % 2), cz + (i % 2 ? .08 : -.05)]);
+  }
+  const flames = new THREE.InstancedMesh(new THREE.SphereGeometry(.055, 8, 6), new THREE.MeshBasicMaterial({ color: '#ffcf6a' }), flameSpots.length);
+  flameSpots.forEach(([x, y, z], i) => { pos.set(x, y, z); scl.set(1, 1.7, 1); mtx.compose(pos, q, scl); flames.setMatrixAt(i, mtx); });
+  group.add(flames);
+
+  return { group, added: { ropePosts: POST_X.length * 2, palms: 4, banners: 4, gifts: 6, candles: flameSpots.length } };
+}
