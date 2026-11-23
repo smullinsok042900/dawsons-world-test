@@ -14,6 +14,11 @@ remove it here and record it in `DEVELOPMENT_LOG.md`. Add new findings (bugs, id
 - **Exact next task:** Stage 11 — Sunny Seaside graphics pass: layered surf and wet sand at the waterline, beach
   umbrellas and towels, a pier railing with posts and lamps, gulls and beach balls; capture before/after at x −120 and
   −90, run the audit, then sync the same PR.
+- **Tooling now available (2026-11-23):** `@gltf-transform/cli` 4.5.1 is a devDependency; KTX-Software `ktx`
+  v4.4.2 is at `~/ktx/bin` (ETC1S/Basis verified on `tree_0.glb`, output valid `KHR_texture_basisu`); Blender
+  4.2.3 LTS runs headless from `~/blender-4.2.3-linux-x64` with user-space libs. KTX2 is **not** wired into
+  `src/assets.js` yet and no shipped asset was re-encoded — adopt it only with an https transcoder path and a
+  fallback for local play.
 
 
 ## Active family request: the next thirty creations
