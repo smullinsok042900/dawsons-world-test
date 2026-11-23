@@ -142,6 +142,49 @@ Streamed district (built only when you come near), so the detail is appended as 
 Single-frame measurement: **+3 draw calls, +5,012 triangles**. Audit clean (0 duplicates, 0 z-fighting,
 collision entries clean), 0 page errors.
 
+## Stage 6: lighting, atmosphere, vegetation and rail clearance (world-wide)
+
+This stage changes the look of **every** environment rather than adding more small props.
+
+- **Tone mapping:** Neutral → **ACES filmic** with exposure 1.02. Pastels keep their hue but gain
+  contrast and depth; highlights roll off instead of clipping.
+- **Key light:** warmer sun (`#ffeed4`, intensity 3.05), hemisphere raised to .78, shadow blur radius
+  4 → 5.5. Shadows now read as soft shapes rather than hard stickers.
+- **Atmosphere:** fog pushed from 55–190 m to **72–250 m** in a lavender tint, so the mid-ground keeps
+  its colour and the far hills gain depth without hazing the play area.
+- **Dinosaur skin:** Dottie's material gained a procedural pebbled normal map (5×4 repeat, .5 scale),
+  so the body catches the sun with scale bumps instead of reading as smooth plastic.
+- **Dino Valley vegetation:** the flat/conifer-looking ferns were replaced with lush broad-leaf jungle
+  plants (two rings of oval leaves on a stem, 10 leaves per plant, 95 instanced).
+- **Playhouse (indoor):** three soft play mats and a low toy shelf holding 14 colourful books, merged
+  into one mesh.
+
+### Rail clearance fixes (no attraction removed)
+
+The train line runs at **z = 3.2** and its corridor is z 2.2–4.3. Several decorations sat inside it:
+
+| Object | Was | Now |
+|---|---|---|
+| Playhouse woven rug | z 3.3 (on the rails) | z 5.55 |
+| Park lamp posts | z +2.9 | z +5.15 / −2.9 alternating |
+| Castle parterre beds | z 2.7–5.7 (straddled the rails) | z 4.9–7.1 |
+| Castle urns | z 2.15 | z 1.9 |
+| Toy Town giant balls | z 4.2–5.0 (ball reached the rails) | z 5.75–6.3 |
+| Toy Town tops | z 4.8–5.0 | z 5.8–6.0 |
+| Dino foreground plants | from z 3.6 | from z 4.85 |
+| Dino footprints | z 1.35 (walking lane) | z 1.95 |
+
+### Cost
+
+Lighting, tone mapping and fog add **no draw calls and no geometry**. Vegetation stays a single
+instanced batch (about +8k triangles total); the playhouse furniture is **+1 batch** (~0.5k triangles).
+The adaptive quality system (mobile starts at level 1, measured frame times adjust) is untouched.
+
+### Before / after screenshots
+
+Captured in the cloud browser at 1280×720 in `docs/screenshots/stage6/`: `before-*.jpg` and
+`after-*.jpg` for playhouse, park, castle, dino, throne and toytown. Same camera positions.
+
 ## Merge helper instead of hand-written loops
 
 `scenery-detail.js` had three hand-written merge loops (flower heads, boulders, lamp posts) that

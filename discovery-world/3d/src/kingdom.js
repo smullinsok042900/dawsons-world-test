@@ -59,6 +59,10 @@ export function initKingdom(G, api) {
   // =================== DINO VALLEY ===================
   // Dottie, the giant long-neck (she's grazing, so her neck curves down to the flowers)
   const skin = toy('#7fd6c2', { r: .45, cc: .6, sheen: .4 }), belly = toy('#dcfff4', { r: .5, cc: .4 }), spot = toy('#55bba6', { r: .5, cc: .5 }), plate = toy('#ff9fd2', { r: .3, cc: .9 });
+  // (stage 6) a scaly skin normal map: soft pebbled bumps that catch the sun, so Dottie reads as a sculpted creature
+  { const N = 128, c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d'); g.fillStyle = '#8080ff'; g.fillRect(0, 0, N, N);
+    for (let i = 0; i < 190; i++) { const x = (i * 53) % N, y = (i * 97) % N, r = 3 + (i % 4); const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, '#b0b0ff'); gr.addColorStop(.7, '#8585ff'); gr.addColorStop(1, '#8080ff'); g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); }
+    const map = new THREE.CanvasTexture(normalFromCanvas(c, 4)); map.wrapS = map.wrapT = THREE.RepeatWrapping; map.repeat.set(5, 4); skin.normalMap = map; skin.normalScale.set(.5, .5); skin.needsUpdate = true; }
   // smooth tapering tubes for the neck and the tail
   const taperTube = (pts, r0, r1, seg = 48) => {
     const curve = new THREE.CatmullRomCurve3(pts), geo = new THREE.TubeGeometry(curve, seg, 1, 18, false), pos = geo.attributes.position, P0 = new THREE.Vector3();

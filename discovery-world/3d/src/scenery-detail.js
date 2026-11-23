@@ -54,7 +54,7 @@ export function buildPlayhouseDetail({ scene, add, rnd }) {
 
   // --- the rug, flat on the floor in front of the ball pit (no collision, no shadow cast)
   const rug = new THREE.Mesh(new THREE.CircleGeometry(3.3, 56), new THREE.MeshStandardMaterial({ map: rugTexture(), roughness: .96, metalness: 0 }));
-  rug.rotation.x = -Math.PI / 2; rug.position.set(12, .016, 3.3); rug.receiveShadow = true; group.add(rug);
+  rug.rotation.x = -Math.PI / 2; rug.position.set(12, .016, 5.55); rug.receiveShadow = true; group.add(rug); // (stage 6: clear of the train line at z 3.2)
 
   // --- bunting: 72 little flags on a sagging line across the ceiling
   const flagGeo = new THREE.BufferGeometry();
@@ -83,7 +83,21 @@ export function buildPlayhouseDetail({ scene, add, rnd }) {
     cord.position.set(x, y + .9, z); group.add(cord); cords.push(cord);
   });
 
-  return { group, added: { flags: 72, lanterns: glyphs.length, cords: cords.length } };
+  // --- soft play mats and a low toy shelf along the back wall (one merged mesh, no collision)
+  const softParts = [];
+  for (const [mx, mz, w, d, col] of [[-2.5, -2.2, 2.2, 1.5, '#9fe6ff'], [1.2, -2.4, 1.8, 1.4, '#ffd1ec'], [3.6, -3.0, 1.6, 1.6, '#fff3a6']]) {
+    const mat = new THREE.BoxGeometry(w, .1, d); mat.translate(mx, .05, mz);
+    softParts.push(tinted(mat, col)); mat.dispose();
+  }
+  const shelf = new THREE.BoxGeometry(4.4, .12, .5); shelf.translate(-9, .75, -4.35);
+  const shelfBase = new THREE.BoxGeometry(4.4, .1, .5); shelfBase.translate(-9, .05, -4.35);
+  softParts.push(tinted(shelf, '#c98a52'), tinted(shelfBase, '#b8723f')); shelf.dispose(); shelfBase.dispose();
+  for (const sx of [-10.9, -9, -7.1]) { const post = new THREE.BoxGeometry(.14, 1.5, .5); post.translate(sx, .75, -4.35); softParts.push(tinted(post, '#a96f3e')); post.dispose(); }
+  for (let i = 0; i < 14; i++) { const bk = new THREE.BoxGeometry(.18, .34 + (i % 3) * .05, .3); bk.translate(-10.7 + i * .27, .95, -4.4); softParts.push(tinted(bk, ['#ff5f8f', '#ffd23f', '#4fa8ff', '#57c97a', '#b07cff'][i % 5])); bk.dispose(); }
+  const soft = new THREE.Mesh(mergeParts(softParts), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .85 }));
+  soft.castShadow = true; soft.receiveShadow = true; group.add(soft);
+
+  return { group, added: { flags: 72, lanterns: glyphs.length, cords: cords.length, mats: 3, books: 14 } };
 }
 
 export function buildParkDetail({ scene, add, terrainH, rnd }) {
@@ -147,7 +161,7 @@ export function buildParkDetail({ scene, add, terrainH, rnd }) {
   // --- lamp posts along the path (merged posts + instanced glowing globes)
   const postParts = [], globeSpots = [];
   for (let i = 0; i < 6; i++) {
-    const x = 150 + i * 28, z = (i % 2 ? 1 : -1) * 2.9;
+    const x = 150 + i * 28, z = i % 2 ? 5.15 : -2.9; // (stage 6: never inside the train corridor)
     const base = new THREE.CylinderGeometry(.16, .22, .24, 10); base.translate(x, terrainH(x, z) + .12, z);
     const pole = new THREE.CylinderGeometry(.055, .07, 2.25, 8); pole.translate(x, terrainH(x, z) + 1.25, z);
     postParts.push(tinted(base, '#4a4f60'), tinted(pole, '#565c70'));
@@ -173,7 +187,7 @@ export function buildCastleDetail({ scene, add, cx = 407, rnd }) {
 
   // --- two formal parterre beds in the near foreground: gravel plate, trimmed hedge border,
   //     a rose bush and five blooms in each.
-  const beds = [[cx - 4.4, 4.2, 3.0, 2.2], [cx + 4.4, 4.2, 3.0, 2.2]];
+  const beds = [[cx - 4.4, 6.1, 3.0, 2.2], [cx + 4.4, 6.1, 3.0, 2.2]]; // (stage 6: beyond the train line)
   const gravelParts = [], hedgeParts = [];
   for (const [bx, bz, w, d] of beds) {
     const soil = new THREE.BoxGeometry(w, .1, d); soil.translate(bx, .05, bz); gravelParts.push(tinted(soil, '#e8dcc4')); soil.dispose();
@@ -207,7 +221,7 @@ export function buildCastleDetail({ scene, add, cx = 407, rnd }) {
   // --- four stone urns flanking the walk, each with a little flowering top
   const urnParts = [], urnTops = [];
   for (const ux of [cx - 8.2, cx - 2.4, cx + 2.4, cx + 8.2]) {
-    const uz = 2.15;
+    const uz = 1.9; // (stage 6: before the rails)
     const foot = new THREE.CylinderGeometry(.18, .24, .16, 12); foot.translate(ux, .08, uz);
     const bowl = new THREE.CylinderGeometry(.34, .2, .34, 14); bowl.translate(ux, .33, uz);
     const rim = new THREE.TorusGeometry(.34, .045, 8, 16); rim.rotateX(Math.PI / 2); rim.translate(ux, .5, uz);
@@ -242,20 +256,31 @@ export function buildDinoDetail({ scene, add, dx = 378, rnd }) {
   const rr = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
   const mtx = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), pos = new THREE.Vector3(), scl = new THREE.Vector3();
 
-  // --- ferns: one merged frond, instanced along the back of the valley and the near foreground
+  // --- lush broad-leaf plants: two rings of big oval leaves on short stems (reads as jungle, not conifers)
   const leafParts = [];
-  for (let f = 0; f < 5; f++) {
-    const blade = new THREE.PlaneGeometry(.16, .62, 1, 2);
-    blade.translate(0, .31, 0); blade.rotateX(-.35);
-    blade.rotateY(f / 5 * Math.PI * 2);
-    leafParts.push(blade);
+  const greens = ['#8fd587', '#a3e096', '#77c873'];
+  for (let ring = 0; ring < 2; ring++) {
+    const count = ring ? 4 : 6;
+    for (let i = 0; i < count; i++) {
+      const a = i / count * Math.PI * 2 + ring * .6;
+      const len = .46 - ring * .09;
+      const leaf = new THREE.CircleGeometry(len, 10);
+      leaf.scale(1, .58, 1);
+      leaf.rotateX(-Math.PI / 2 + .42 + ring * .18);  // mostly flat, lifted at the tip
+      leaf.rotateY(a);
+      leaf.translate(0, .18 + ring * .22, 0);
+      leafParts.push(tinted(leaf, greens[(i + ring) % 3]));
+      leaf.dispose();
+    }
   }
+  const stem = new THREE.CylinderGeometry(.05, .09, .34, 6); stem.translate(0, .17, 0);
+  leafParts.push(tinted(stem, '#5f9a52')); stem.dispose();
   const frondGeo = mergeParts(leafParts);
-  const frondMat = new THREE.MeshStandardMaterial({ color: '#3f8f4f', roughness: .8, side: THREE.DoubleSide });
+  const frondMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .72, side: THREE.DoubleSide });
   const fernSpots = [];
   for (let i = 0; i < 95; i++) {
     const x = dx - 20 + rr() * 36;
-    const z = rr() < .62 ? -(5.0 + rr() * 3.2) : (3.6 + rr() * 2.6);
+    const z = rr() < .62 ? -(5.0 + rr() * 3.2) : (4.85 + rr() * 2.1); // (stage 6: foreground ferns moved off the rails)
     if (Math.abs(x - 363.4) < 2.2 && z < 0) continue; // keep the egg nest clear
     fernSpots.push([x, z, .8 + rr() * .9, rr() * 6.28]);
   }
@@ -263,7 +288,7 @@ export function buildDinoDetail({ scene, add, dx = 378, rnd }) {
   fernSpots.forEach(([x, z, s, a], i) => {
     pos.set(x, 0, z); q.setFromAxisAngle(up, a); scl.set(s, s, s);
     mtx.compose(pos, q, scl); ferns.setMatrixAt(i, mtx);
-    if (i % 3 === 0) ferns.setColorAt(i, C.set('#4f9f5a'));
+    ferns.setColorAt(i, C.set(['#a7e29e', '#98d994', '#b4e8aa'][i % 3]));
   });
   ferns.castShadow = false; ferns.receiveShadow = true; group.add(ferns);
 
@@ -303,7 +328,7 @@ export function buildDinoDetail({ scene, add, dx = 378, rnd }) {
   const printGeo = new THREE.CircleGeometry(.2, 10); printGeo.rotateX(-Math.PI / 2); printGeo.scale(1, 1, .7);
   const prints = new THREE.InstancedMesh(printGeo, new THREE.MeshStandardMaterial({ color: '#6f9c6a', roughness: 1 }), 8);
   for (let i = 0; i < 8; i++) {
-    mtx.makeTranslation(dx - 9 + i * 1.3, .012, 1.35 + (i % 2 ? .18 : -.12));
+    mtx.makeTranslation(dx - 9 + i * 1.3, .012, 1.95 + (i % 2 ? .16 : -.1));
     mtx.multiply(new THREE.Matrix4().makeRotationY(i % 2 ? .3 : -.3));
     prints.setMatrixAt(i, mtx);
   }
@@ -454,14 +479,14 @@ export function buildToyTownDetail({ add }) {
 
   // --- giant toy balls along the near edge of the path (one instanced mesh, per-instance colour)
   const ballSpots = [];
-  for (const x of [562, 574, 589, 604, 626, 641, 655]) ballSpots.push([x, .42 + rr() * .28, 4.2 + rr() * .8]);
+  for (const x of [562, 574, 589, 604, 626, 641, 655]) ballSpots.push([x, .42 + rr() * .28, 5.75 + rr() * .55]); // (stage 6: the balls sat across the rails at z 3.2)
   const balls = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 20, 14), new THREE.MeshStandardMaterial({ roughness: .28, metalness: 0, clearcoat: 1 }), ballSpots.length);
   ballSpots.forEach(([x, r, z], i) => { pos.set(x, r, z); scl.set(r, r, r); mtx.compose(pos, q, scl); balls.setMatrixAt(i, mtx); balls.setColorAt(i, C.set(toyCols[i % toyCols.length])); });
   balls.castShadow = true; balls.receiveShadow = true; group.add(balls);
 
   // --- spinning tops (one merged mesh: base disc, body, stem and knob for each)
   const topParts = [];
-  for (const [x, z] of [[570, 4.9], [596, 5.0], [618, 4.8], [648, 4.9]]) {
+  for (const [x, z] of [[570, 5.9], [596, 6.0], [618, 5.8], [648, 5.9]]) {
     const base = new THREE.CylinderGeometry(.34, .38, .1, 18); base.translate(x, .05, z);
     const body = new THREE.ConeGeometry(.4, .62, 18); body.rotateX(Math.PI); body.translate(x, .41, z);
     const stem = new THREE.CylinderGeometry(.035, .045, .3, 8); stem.translate(x, .82, z);

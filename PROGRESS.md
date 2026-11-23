@@ -11,7 +11,8 @@ Every completed stage is committed and pushed to `main` automatically.
 | 2 | Playhouse & Park detail; audit false positives resolved (fur shells, terrain masses) | `77cb5d2` | 12 audit + 8 spatial tests, build, audit clean, in-scene A/B |
 | 3 | Castle front & Dino Valley detail; `mergeGeometries` helper; auditor ignores merged slabs | `dfc92f6` | 21 tests, build, single-frame A/B, audit clean |
 | 4 | Castle throne room detail; carpet trim raised above z-fight range | `0246790` | 21 tests, build, single-frame A/B, room audit clean |
-| 5 | Toy Town detail (toy-box spill, giant balls, spinning tops) | this commit | 21 tests, build, single-frame A/B |
+| 5 | Toy Town detail (toy-box spill, giant balls, spinning tops) | `039752b` | 21 tests, build, single-frame A/B |
+| 6 | World-wide lighting/atmosphere, dino skin & vegetation, playhouse furniture, rail-clearing fixes | this commit | 21 tests, build, screenshots, 0 page errors |
 
 ## Graphics improvements
 
@@ -24,6 +25,18 @@ Every completed stage is committed and pushed to `main` automatically.
 - **Toy Town:** overturned toy box spilling 8 alphabet blocks, 7 giant toy balls along the near path, 4 spinning tops.
 
 All additions are additive decoration: no collision entries, no changes to rides, taps, saves or child-friendly controls. `?nodetail` disables them for measurement.
+
+### Stage 6 — world-wide look (no prop-by-prop additions)
+
+- **Filmic tone mapping (ACES)** with exposure 1.02, warmer key light, stronger hemisphere fill and a
+  softer shadow radius — every environment gains contrast and shape.
+- **Atmosphere**: fog moved back to 72–250 m in lavender, giving distance depth without hazing play.
+- **Dottie** now has a procedural pebbled normal map, so her skin reads as scaly rather than smooth.
+- **Dino Valley vegetation** replaced with broad-leaf jungle plants (instanced, 95).
+- **Playhouse** gained soft play mats and a toy shelf with 14 books.
+- **Rail clearance**: the playhouse rug, park lamps, castle beds/urns and Toy Town balls/tops no longer
+  intersect the train corridor at z 3.2. See the table in `discovery-world/3d/docs/GRAPHICS_OVERHAUL_PROGRESS.md`.
+- **Before/after screenshots**: `discovery-world/3d/docs/screenshots/stage6/` (six paired scenes).
 
 ### Measured cost (single-frame A/B, same camera, group visibility only)
 

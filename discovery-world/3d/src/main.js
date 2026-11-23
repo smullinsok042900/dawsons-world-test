@@ -60,7 +60,7 @@ const SAVE_KEY = 'dawsons-discovery-world-3d-v1';
 const TEST = /[?&]test/.test(location.search);
 // build 18: one balanced light rig (key : fill about 3 : 1, so things have form and shadows, and
 // sunlit pastels stay below white instead of clipping). Values were tuned against measured screenshots.
-const LIGHT = { env: .55, hemi: .7, sun: 2.85, rim: .55, exposure: .95 };
+const LIGHT = { env: .55, hemi: .78, sun: 3.05, rim: .5, exposure: 1.02 };
 
 // ---------------- renderer, scene, camera, light ----------------
 const canvas = $('game');
@@ -70,7 +70,7 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPrefere
 canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); window.__oops && window.__oops('The device reset the 3D graphics (it may be low on memory). Tap Try again.'); });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.debug.checkShaderErrors = TEST; // (build 24: the shader error check forces the browser to wait for each shader the first time it is used; on only in test mode)
-renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = LIGHT.exposure;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = LIGHT.exposure; // (stage 6: filmic contrast; the pastel palette keeps its hue but gains depth)
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap; // (filtered, with a blur radius below)
 const scene = new THREE.Scene();
 const pmrem = new THREE.PMREMGenerator(renderer);
@@ -86,11 +86,11 @@ const pmrem = new THREE.PMREMGenerator(renderer);
   const sunBall = new THREE.Mesh(new THREE.SphereGeometry(2.6, 16, 12), new THREE.MeshBasicMaterial({ color: new THREE.Color(9, 8, 6.6) })); sunBall.position.set(-14, 22, 18); envScene.add(sunBall);
   scene.environment = pmrem.fromScene(envScene, .02).texture; scene.environmentIntensity = LIGHT.env;
 }
-scene.fog = new THREE.Fog('#e6d2f2', 55, 190); // build 18: atmospheric perspective only in the far distance (no haze over the play area)
+scene.fog = new THREE.Fog('#e9d9ff', 72, 250); // build 18/stage 6: atmospheric perspective pushed back, so mid-ground keeps its colour
 const camera = new THREE.PerspectiveCamera(38, 2, .3, 600); // (build 20: near .3 instead of .1 = 3x the depth precision, no z-fighting on wall details)
 const hemi = new THREE.HemisphereLight('#e4ecff', '#8f8a6a', LIGHT.hemi); scene.add(hemi);
-const sun = new THREE.DirectionalLight('#fff0d8', LIGHT.sun); sun.castShadow = true;
-sun.shadow.camera.layers.enable(1); /* (build 28) layer 1 = low-detail copies that only cast shadows */ sun.shadow.mapSize.set(MOBILE ? 1536 : 2048, MOBILE ? 1536 : 2048); /* (build 22: lighter on phones) */ sun.shadow.radius = 4; /* soft shadow edges */ Object.assign(sun.shadow.camera, { left: -13, right: 13, top: 10, bottom: -5, near: 1, far: 50 }); /* build 17: a tighter box = sharper shadows */ sun.shadow.bias = -.0004; sun.shadow.normalBias = .03;
+const sun = new THREE.DirectionalLight('#ffeed4', LIGHT.sun); sun.castShadow = true; // (stage 6: warmer key light, stronger shape reading)
+sun.shadow.camera.layers.enable(1); /* (build 28) layer 1 = low-detail copies that only cast shadows */ sun.shadow.mapSize.set(MOBILE ? 1536 : 2048, MOBILE ? 1536 : 2048); /* (build 22: lighter on phones) */ sun.shadow.radius = 5.5; /* soft shadow edges */ Object.assign(sun.shadow.camera, { left: -13, right: 13, top: 10, bottom: -5, near: 1, far: 50 }); /* build 17: a tighter box = sharper shadows */ sun.shadow.bias = -.0004; sun.shadow.normalBias = .03;
 scene.add(sun, sun.target);
 // a soft cool light from behind: it outlines everything with a gentle rim, so shapes look rounder and more real
 const rim = new THREE.DirectionalLight('#d6e4ff', LIGHT.rim); rim.position.set(-6, 7, -12); scene.add(rim);
