@@ -419,3 +419,58 @@ export function buildCastleInteriorDetail({ add, ox = 2000 }) {
 
   return { group, added: { ropePosts: POST_X.length * 2, palms: 4, banners: 4, gifts: 6, candles: flameSpots.length } };
 }
+
+export function buildToyTownDetail({ add }) {
+  const group = new THREE.Group(); group.name = 'toytown-detail'; add(group);
+  let seed = 51505150;
+  const rr = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+  const mtx = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), pos = new THREE.Vector3(), scl = new THREE.Vector3();
+  const toyCols = ['#ff5f8f', '#ffd23f', '#4fa8ff', '#57c97a', '#b07cff', '#ff9a3f'];
+
+  // --- an overturned toy box behind the path, spilling alphabet blocks (one merged mesh)
+  const crateParts = [];
+  const BX = 600, BZ = -5.4;
+  const bottom = new THREE.BoxGeometry(1.9, .12, 1.3); bottom.translate(BX, .06, BZ);
+  crateParts.push(tinted(bottom, '#c98a52'));
+  bottom.dispose();
+  for (const [ox, oz, w, d] of [[0, -.64, 1.9, .1], [0, .64, 1.9, .1], [-.94, 0, .1, 1.3], [.94, 0, .1, 1.3]]) {
+    const side = new THREE.BoxGeometry(w, .78, d); side.translate(BX + ox, .45, BZ + oz);
+    crateParts.push(tinted(side, '#b8723f')); side.dispose();
+  }
+  for (let i = 0; i < 8; i++) {
+    const s = .34 + rr() * .2;
+    const x = BX + 1.15 + (i % 4) * .55 + rr() * .12;
+    const z = BZ + .55 - Math.floor(i / 4) * .7 + rr() * .15;
+    const rot = (rr() - .5) * .5;
+    const block = new THREE.BoxGeometry(s, s, s);
+    block.rotateY(rot); block.rotateZ((rr() - .5) * .15); block.translate(x, s / 2, z);
+    crateParts.push(tinted(block, toyCols[i % toyCols.length])); block.dispose();
+    const band = new THREE.BoxGeometry(s + .005, s * .18, s + .005);
+    band.rotateY(rot); band.translate(x, s / 2, z);
+    crateParts.push(tinted(band, '#fff6df')); band.dispose();
+  }
+  const crate = new THREE.Mesh(mergeParts(crateParts), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .75 }));
+  crate.castShadow = true; crate.receiveShadow = true; group.add(crate);
+
+  // --- giant toy balls along the near edge of the path (one instanced mesh, per-instance colour)
+  const ballSpots = [];
+  for (const x of [562, 574, 589, 604, 626, 641, 655]) ballSpots.push([x, .42 + rr() * .28, 4.2 + rr() * .8]);
+  const balls = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 20, 14), new THREE.MeshStandardMaterial({ roughness: .28, metalness: 0, clearcoat: 1 }), ballSpots.length);
+  ballSpots.forEach(([x, r, z], i) => { pos.set(x, r, z); scl.set(r, r, r); mtx.compose(pos, q, scl); balls.setMatrixAt(i, mtx); balls.setColorAt(i, C.set(toyCols[i % toyCols.length])); });
+  balls.castShadow = true; balls.receiveShadow = true; group.add(balls);
+
+  // --- spinning tops (one merged mesh: base disc, body, stem and knob for each)
+  const topParts = [];
+  for (const [x, z] of [[570, 4.9], [596, 5.0], [618, 4.8], [648, 4.9]]) {
+    const base = new THREE.CylinderGeometry(.34, .38, .1, 18); base.translate(x, .05, z);
+    const body = new THREE.ConeGeometry(.4, .62, 18); body.rotateX(Math.PI); body.translate(x, .41, z);
+    const stem = new THREE.CylinderGeometry(.035, .045, .3, 8); stem.translate(x, .82, z);
+    const knob = new THREE.SphereGeometry(.07, 10, 8); knob.translate(x, .99, z);
+    topParts.push(tinted(base, '#ffd23f'), tinted(body, '#4fa8ff'), tinted(stem, '#ffffff'), tinted(knob, '#ff5f8f'));
+    base.dispose(); body.dispose(); stem.dispose(); knob.dispose();
+  }
+  const tops = new THREE.Mesh(mergeParts(topParts), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .4, metalness: .1 }));
+  tops.castShadow = true; tops.receiveShadow = true; group.add(tops);
+
+  return { group, added: { blocks: 8, balls: ballSpots.length, tops: 4 } };
+}

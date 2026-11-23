@@ -17,6 +17,7 @@ import { SPECIES as LIFE, PET_KINDS as LIFE_PETS, creatureMesh, animate as lifeA
 import { PET_PICS } from './pet-pictures.js';
 import { FAMILY_FRIEND_HOMES } from './family-friend-homes.js';
 import { CRAFT_FRIEND_HOMES } from './craft-friend-homes.js';
+import { buildToyTownDetail } from './scenery-detail.js';
 
 export const EXP = { x0: 424, x1: 940, xMin: -830 }; // (build 49: Balloon Hills, past the pier) // (build 43: both ends now lead up stairs into the sky) // (build 30: the world also grows to the LEFT of the Playhouse; build 35: on to the farm)
 export const DISTRICTS = [
@@ -397,6 +398,8 @@ export function initExpansion(G, api) {
     () => { c.cyl(651.5, 0, -2.4, .9, .7, .8, '#c87a2a', { r: .8 }); /* (build 64: in the gap between the houses; at 656 the balloons rose up a house wall) */ const list = []; const spawn = b => { b.position.set(650 + Math.random() * 3, .8, -2.4 + Math.random() * .8); b.rotation.z = 0; b.userData.v = .8 + Math.random() * .6; };
       for (let i = 0; i < 6; i++) { const b = physicalToy('🎈', 1); spawn(b); b.position.y = Math.random() * 8; c.add(b); list.push(b); c.tap(b, () => { if (b.userData.pop) return; b.userData.pop = 1; Sound.pop ? Sound.pop() : Sound.click(); X.balloons++; c.burst(b.position.x, b.position.y, b.position.z, RB, 10, 2.5); c.disc('balloons', '🎈 Pop! Catch the balloons as they float up!'); if (X.balloons % 10 === 0) c.say(`🎈 ${X.balloons} balloons caught!`); setTimeout(() => { b.userData.pop = 0; spawn(b); }, 400); b.position.y = -20; api.saveSoon(); }); }
       return dt => { for (const b of list) { if (b.userData.pop) continue; b.position.y += b.userData.v * dt; b.position.x += Math.sin(b.position.y * 1.3) * dt * .3; if (b.position.y > 10) spawn(b); } }; },
+    // (stage 5) toy-box spill, giant balls and spinning tops along the path
+    () => { G.toyTownDetail = buildToyTownDetail({ add: c.add }); },
   ];
 
   // =================== 🔬 LAB GARDENS ===================

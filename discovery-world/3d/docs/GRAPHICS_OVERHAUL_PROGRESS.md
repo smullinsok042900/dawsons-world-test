@@ -105,6 +105,7 @@ the group visible and one without, `renderer.info.reset()` before each:
 | Castle | 7 | 13,660 | **+7** | **+13,660** |
 | Dino Valley | 5 | 3,960 | **+5** | **+3,960** |
 | Castle throne room | 6 | 7,312 | **+6** | **+7,312** |
+| Toy Town | 3 | 5,012 | **+3** | **+5,012** |
 
 Park/Playhouse were re-measured with the same method, so all four rows are comparable. (The
 earlier Park reading of +6 calls included one stream-timing artefact.) Each batch adds exactly one
@@ -128,6 +129,18 @@ the group's geometry.
 While measuring, the audit reported two coplanar pairs in the room: the existing carpet at y .012
 and its gold trim at y .014 — a 2 mm gap, which can flicker at this scale. The trim now sits at
 y .022. The audit for the room is now **0 duplicates, 0 z-fighting, collisions clean**.
+
+## Stage 5: Toy Town (implemented, measured)
+
+Streamed district (built only when you come near), so the detail is appended as a district builder in
+`expansion.js` and added to the district group — it unloads with the district.
+
+- an overturned toy box behind the path spilling eight alphabet blocks;
+- seven giant toy balls along the near edge of the path (one instanced mesh, per-instance colour);
+- four spinning tops (base, body, stem and knob merged into one mesh).
+
+Single-frame measurement: **+3 draw calls, +5,012 triangles**. Audit clean (0 duplicates, 0 z-fighting,
+collision entries clean), 0 page errors.
 
 ## Merge helper instead of hand-written loops
 
