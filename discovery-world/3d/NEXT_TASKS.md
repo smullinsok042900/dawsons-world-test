@@ -84,10 +84,17 @@ remove it here and record it in `DEVELOPMENT_LOG.md`. Add new findings (bugs, id
 - **Also done in stage 29 (pinned-camera fix):** a top-down pinned camera showed the first heart basin was an oval, so the
   plain moved to x +205 and was re-cut from the heart glacier's own bezier outline (64 points, signed distance, dark tholin
   rim line). The same camera now reads the heart - two lobes, notch and point (`docs/screenshots/stage29/heart-top.png`).
-- **Done:** Stage 30 — characters and pets (their own `lifeMat` soft toy paint at roughness 0.58 / metalness 0, plus a
-  top-lit gradient baked once into every species' shared shape, so bodies read round at phone distance with no extra
-  geometry or per-frame work): all 11 character and pet taps on Pluto resolve, animations untouched, frames unchanged at
-  56 calls / 87,378 tris, audit 0 z-fighting at 12/60/205, screenshots in `docs/screenshots/stage30/`.
+- **Done:** Stage 30 — characters and pets (their own `lifeMat` soft toy paint at roughness 0.58 / metalness 0): all 11
+  character and pet taps on Pluto resolve, animations untouched, frames unchanged at 56 calls / 87,378 tris, audit
+  0 z-fighting at 12/60/205, screenshots in `docs/screenshots/stage30/`. A baked top-lit gradient was built and then
+  **reverted** on release validation because it changed the family drawings' exact paint colours (asserted by
+  `tests/chalk-friends.test.mjs`); paint-preserving shading via a baked aoMap is now a stage 31 item.
+- **Fixed on release validation (stage 28 regression):** the Neptune storm clearing read `spot[0]` inside the shared
+  gas-giant height function, where `spot` is null for Jupiter, Saturn and Uranus, so those three threw while building.
+  Now gated on Neptune; all three build and capture again (57/64/71 calls, 96,250/82,398/81,730 tris, audits clean).
+- **Interim release:** PR #104 is frozen as an interim release (stages 1-30) awaiting review; `INTERIM_RELEASE.md` is the
+  release checklist and `RELEASE_CHECKLIST.md` remains the final one. Do not push to PR #104 while it is in review.
+  After it is merged, continue on a new branch (`feature/overhaul-31-plus`) and open a new PR for the next release.
 - **Exact next task:** Stage 31 — the rest of Phase 3 (bevels on the hard-edged family characters, eye highlights sized
   for phone distance, LOD for far followers), preserving every animation, pet behaviour and save field; then sync the
   same PR.
