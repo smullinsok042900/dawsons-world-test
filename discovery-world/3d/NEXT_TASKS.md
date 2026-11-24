@@ -71,9 +71,14 @@ remove it here and record it in `DEVELOPMENT_LOG.md`. Add new findings (bugs, id
   of the three with a teal-and-pale palette, three band-aligned rows of cloud banks, low wisp streaks; the rolling
   planet and diamond rain re-tapped): ground mesh 1 mesh / 17,400 tris, whole place 48 meshes / 71,152 tris, frame
   71 calls / 81,730 tris at the approach, audit 0 z-fighting at 12/44/72/120, screenshots in `docs/screenshots/stage27/`.
-- **Exact next task:** Stage 28 — Neptune (a banded deck with depth like Jupiter's, Saturn's and Uranus's, the Great
-  Dark Spot and the wind rides kept working); capture with `node tools/capture.cjs docs/screenshots/stage28 '[[…,…]]'
-  --place neptune`, run both tests and `node tools/audit.cjs --place neptune …`, then sync the same PR.
+- **Done:** Stage 28 — Neptune (a 150x58 banded deck with the strongest belts of the four and a banked far deck, four
+  band-aligned rows of cloud banks, low wisp streaks, the Great Dark Spot repainted over the bands on a calm plateau,
+  and the windsock gust and wind-ride button re-verified): ground mesh 1 mesh / 17,400 tris, whole place 35 meshes /
+  81,214 tris, frame 56 calls / 91,638 tris at the approach, audit 0 z-fighting at 12/44/72/120, screenshots in
+  `docs/screenshots/stage28/`.
+- **Exact next task:** Stage 29 — Pluto (a layered surface with depth to match the other planets, the heart plain and
+  the existing rides kept working); capture with `node tools/capture.cjs docs/screenshots/stage29 '[[…,…]]' --place
+  pluto`, run both tests and `node tools/audit.cjs --place pluto …`, then sync the same PR.
 - **Tooling now available (2026-11-23):** `@gltf-transform/cli` 4.5.1 is a devDependency; KTX-Software `ktx`
   v4.4.2 is at `~/ktx/bin` (ETC1S/Basis verified on `tree_0.glb`, output valid `KHR_texture_basisu`); Blender
   4.2.3 LTS runs headless from `~/blender-4.2.3-linux-x64` with user-space libs. KTX2 is **not** wired into

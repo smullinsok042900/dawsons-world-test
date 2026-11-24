@@ -1,0 +1,19 @@
+{
+  "url": "file:///workspace/chats/239bbbd65cda24ad89787673/discovery-world/3d/index.html",
+  "shots": [
+    {
+      "name": "neptune-dark-spot",
+      "x": 250,
+      "info": {
+        "calls": 55,
+        "tris": 90548,
+        "geos": 1308,
+        "progs": 147
+      },
+      "models": {}
+    }
+  ],
+  "models": {},
+  "errors": [],
+  "oops": false
+}
