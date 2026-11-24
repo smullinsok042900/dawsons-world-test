@@ -5,8 +5,8 @@
       "name": "neptune-approach",
       "x": 12,
       "info": {
-        "calls": 56,
-        "tris": 91638,
+        "calls": 55,
+        "tris": 90548,
         "geos": 1309,
         "progs": 147
       },
@@ -18,8 +18,7 @@
         "place": {
           "meshes": 42,
           "tris": 84238
-        },
-        "storm": null
+        }
       }
     },
     {
@@ -28,7 +27,7 @@
       "info": {
         "calls": 54,
         "tris": 85740,
-        "geos": 1315,
+        "geos": 1316,
         "progs": 147
       },
       "models": {
@@ -39,17 +38,16 @@
         "place": {
           "meshes": 77,
           "tris": 96206
-        },
-        "storm": null
+        }
       }
     },
     {
       "name": "neptune-dark-spot",
       "x": 99,
       "info": {
-        "calls": 61,
-        "tris": 88790,
-        "geos": 1326,
+        "calls": 60,
+        "tris": 87476,
+        "geos": 1327,
         "progs": 147
       },
       "models": {
@@ -60,8 +58,7 @@
         "place": {
           "meshes": 77,
           "tris": 96206
-        },
-        "storm": null
+        }
       }
     }
   ],
@@ -73,8 +70,7 @@
     "place": {
       "meshes": 42,
       "tris": 84238
-    },
-    "storm": null
+    }
   },
   "errors": [],
   "oops": false

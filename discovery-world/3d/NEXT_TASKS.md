@@ -73,7 +73,7 @@ remove it here and record it in `DEVELOPMENT_LOG.md`. Add new findings (bugs, id
   71 calls / 81,730 tris at the approach, audit 0 z-fighting at 12/44/72/120, screenshots in `docs/screenshots/stage27/`.
 - **Done:** Stage 28 — Neptune (a 150x58 banded deck with the strongest belts of the four and a banked far deck, four
   band-aligned rows of cloud banks, low wisp streaks, a stepped Great Dark Spot funnel beside the walkway over a painted
-  oval and a tight calm plateau that can never lift the path, and the windsock gust and wind-ride button re-verified):
+  oval and a 70x38 m calm clearing gated off the walkway, and the windsock gust and wind-ride button re-verified):
   ground mesh 1 mesh / 17,400 tris, whole place 42 meshes / 84,238 tris, frame 56 calls / 91,638 tris at the approach,
   audit 0 z-fighting at 12/44/72/99, screenshots in `docs/screenshots/stage28/`.
 - **Exact next task:** Stage 29 — Pluto (a layered surface with depth to match the other planets, the heart plain and
