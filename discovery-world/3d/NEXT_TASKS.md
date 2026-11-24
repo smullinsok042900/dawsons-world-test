@@ -81,9 +81,16 @@ remove it here and record it in `DEVELOPMENT_LOG.md`. Add new findings (bugs, id
   matching game and icy slide all re-verified): ground mesh 1 mesh / 40,772 tris, whole place 30 meshes / 73,354 tris,
   frame 56 calls / 87,378 tris at the approach, audit 0 z-fighting at 60/120/200, screenshots in
   `docs/screenshots/stage29/`.
-- **Exact next task:** Stage 30 — the character/pet material pass (characters and pets get the same treatment as the
-  scenery: proper materials, readable silhouettes and faces at phone distance, no new geometry cost that the software
-  renderer cannot afford); check each character and pet still taps and speaks, then sync the same PR.
+- **Also done in stage 29 (pinned-camera fix):** a top-down pinned camera showed the first heart basin was an oval, so the
+  plain moved to x +205 and was re-cut from the heart glacier's own bezier outline (64 points, signed distance, dark tholin
+  rim line). The same camera now reads the heart - two lobes, notch and point (`docs/screenshots/stage29/heart-top.png`).
+- **Done:** Stage 30 — characters and pets (their own `lifeMat` soft toy paint at roughness 0.58 / metalness 0, plus a
+  top-lit gradient baked once into every species' shared shape, so bodies read round at phone distance with no extra
+  geometry or per-frame work): all 11 character and pet taps on Pluto resolve, animations untouched, frames unchanged at
+  56 calls / 87,378 tris, audit 0 z-fighting at 12/60/205, screenshots in `docs/screenshots/stage30/`.
+- **Exact next task:** Stage 31 — the rest of Phase 3 (bevels on the hard-edged family characters, eye highlights sized
+  for phone distance, LOD for far followers), preserving every animation, pet behaviour and save field; then sync the
+  same PR.
 - **Tooling now available (2026-11-23):** `@gltf-transform/cli` 4.5.1 is a devDependency; KTX-Software `ktx`
   v4.4.2 is at `~/ktx/bin` (ETC1S/Basis verified on `tree_0.glb`, output valid `KHR_texture_basisu`); Blender
   4.2.3 LTS runs headless from `~/blender-4.2.3-linux-x64` with user-space libs. KTX2 is **not** wired into
