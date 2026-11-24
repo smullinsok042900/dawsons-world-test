@@ -7,30 +7,6 @@
       "info": {
         "calls": 56,
         "tris": 91638,
-        "geos": 1303,
-        "progs": 147
-      },
-      "models": {
-        "ground": {
-          "meshes": 1,
-          "tris": 17400
-        },
-        "place": {
-          "meshes": 40,
-          "tris": 84094
-        },
-        "storm": {
-          "meshes": 5,
-          "tris": 2880
-        }
-      }
-    },
-    {
-      "name": "neptune-deck",
-      "x": 72,
-      "info": {
-        "calls": 53,
-        "tris": 84426,
         "geos": 1309,
         "progs": 147
       },
@@ -40,22 +16,19 @@
           "tris": 17400
         },
         "place": {
-          "meshes": 75,
-          "tris": 96062
+          "meshes": 42,
+          "tris": 84238
         },
-        "storm": {
-          "meshes": 5,
-          "tris": 2880
-        }
+        "storm": null
       }
     },
     {
-      "name": "neptune-dark-spot",
-      "x": 99,
+      "name": "neptune-deck",
+      "x": 72,
       "info": {
-        "calls": 60,
-        "tris": 88658,
-        "geos": 1320,
+        "calls": 54,
+        "tris": 85740,
+        "geos": 1315,
         "progs": 147
       },
       "models": {
@@ -64,13 +37,31 @@
           "tris": 17400
         },
         "place": {
-          "meshes": 75,
-          "tris": 96062
+          "meshes": 77,
+          "tris": 96206
         },
-        "storm": {
-          "meshes": 5,
-          "tris": 2880
-        }
+        "storm": null
+      }
+    },
+    {
+      "name": "neptune-dark-spot",
+      "x": 99,
+      "info": {
+        "calls": 61,
+        "tris": 88790,
+        "geos": 1326,
+        "progs": 147
+      },
+      "models": {
+        "ground": {
+          "meshes": 1,
+          "tris": 17400
+        },
+        "place": {
+          "meshes": 77,
+          "tris": 96206
+        },
+        "storm": null
       }
     }
   ],
@@ -80,13 +71,10 @@
       "tris": 17400
     },
     "place": {
-      "meshes": 40,
-      "tris": 84094
+      "meshes": 42,
+      "tris": 84238
     },
-    "storm": {
-      "meshes": 5,
-      "tris": 2880
-    }
+    "storm": null
   },
   "errors": [],
   "oops": false
