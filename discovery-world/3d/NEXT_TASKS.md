@@ -66,9 +66,14 @@ remove it here and record it in `DEVELOPMENT_LOG.md`. Add new findings (bugs, id
   five-tier stepped hexagonal storm with dark skirts and foam caps, low wisp streaks): ground mesh 1 mesh / 17,400
   tris, whole place 43 meshes / 72,618 tris, frame 64 calls / 82,398 tris at the approach, audit 0 z-fighting at
   12/44/72/120, screenshots in `docs/screenshots/stage26/`.
-- **Exact next task:** Stage 27 — Uranus (upright ring geometry with gaps, banded deck, the rolling planet and
-  diamond rain kept working); capture with `node tools/capture.cjs docs/screenshots/stage27 '[[…,…]]' --place
-  uranus`, run both tests and `node tools/audit.cjs --place uranus …`, then sync the same PR.
+- **Done:** Stage 27 — Uranus (eight separate 200-segment ring annuli with real gaps between rings 6/5/4, alpha,
+  beta, gamma, delta and the wide epsilon ring over 1024-px grain, a 150x58 banded deck whose belts are the shallowest
+  of the three with a teal-and-pale palette, three band-aligned rows of cloud banks, low wisp streaks; the rolling
+  planet and diamond rain re-tapped): ground mesh 1 mesh / 17,400 tris, whole place 48 meshes / 71,152 tris, frame
+  71 calls / 81,730 tris at the approach, audit 0 z-fighting at 12/44/72/120, screenshots in `docs/screenshots/stage27/`.
+- **Exact next task:** Stage 28 — Neptune (a banded deck with depth like Jupiter's, Saturn's and Uranus's, the Great
+  Dark Spot and the wind rides kept working); capture with `node tools/capture.cjs docs/screenshots/stage28 '[[…,…]]'
+  --place neptune`, run both tests and `node tools/audit.cjs --place neptune …`, then sync the same PR.
 - **Tooling now available (2026-11-23):** `@gltf-transform/cli` 4.5.1 is a devDependency; KTX-Software `ktx`
   v4.4.2 is at `~/ktx/bin` (ETC1S/Basis verified on `tree_0.glb`, output valid `KHR_texture_basisu`); Blender
   4.2.3 LTS runs headless from `~/blender-4.2.3-linux-x64` with user-space libs. KTX2 is **not** wired into

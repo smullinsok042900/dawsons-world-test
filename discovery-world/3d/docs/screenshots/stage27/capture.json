@@ -1,0 +1,77 @@
+{
+  "url": "file:///workspace/chats/239bbbd65cda24ad89787673/discovery-world/3d/index.html",
+  "shots": [
+    {
+      "name": "uranus-approach",
+      "x": 12,
+      "info": {
+        "calls": 71,
+        "tris": 81730,
+        "geos": 1318,
+        "progs": 149
+      },
+      "models": {
+        "ground": {
+          "meshes": 1,
+          "tris": 17400
+        },
+        "place": {
+          "meshes": 48,
+          "tris": 71152
+        }
+      }
+    },
+    {
+      "name": "uranus-deck",
+      "x": 72,
+      "info": {
+        "calls": 72,
+        "tris": 82792,
+        "geos": 1324,
+        "progs": 149
+      },
+      "models": {
+        "ground": {
+          "meshes": 1,
+          "tris": 17400
+        },
+        "place": {
+          "meshes": 86,
+          "tris": 95088
+        }
+      }
+    },
+    {
+      "name": "uranus-rings",
+      "x": 110,
+      "info": {
+        "calls": 72,
+        "tris": 83080,
+        "geos": 1329,
+        "progs": 149
+      },
+      "models": {
+        "ground": {
+          "meshes": 1,
+          "tris": 17400
+        },
+        "place": {
+          "meshes": 86,
+          "tris": 95088
+        }
+      }
+    }
+  ],
+  "models": {
+    "ground": {
+      "meshes": 1,
+      "tris": 17400
+    },
+    "place": {
+      "meshes": 48,
+      "tris": 71152
+    }
+  },
+  "errors": [],
+  "oops": false
+}
