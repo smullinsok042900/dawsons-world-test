@@ -76,9 +76,14 @@ remove it here and record it in `DEVELOPMENT_LOG.md`. Add new findings (bugs, id
   oval and a 70x38 m calm clearing gated off the walkway, and the windsock gust and wind-ride button re-verified):
   ground mesh 1 mesh / 17,400 tris, whole place 42 meshes / 84,238 tris, frame 56 calls / 91,638 tris at the approach,
   audit 0 z-fighting at 12/44/72/99, screenshots in `docs/screenshots/stage28/`.
-- **Exact next task:** Stage 29 — Pluto (a layered surface with depth to match the other planets, the heart plain and
-  the existing rides kept working); capture with `node tools/capture.cjs docs/screenshots/stage29 '[[…,…]]' --place
-  pluto`, run both tests and `node tools/audit.cjs --place pluto …`, then sync the same PR.
+- **Done:** Stage 29 — Pluto (a 208x82 layered terrain grid, the heart-shaped nitrogen-ice plain cut 6.2 m deep with a
+  3.2 m tholin rim and polygonal ice cells, three angular ice peaks beyond it, and the bounce castles, squish maze,
+  matching game and icy slide all re-verified): ground mesh 1 mesh / 40,772 tris, whole place 30 meshes / 73,354 tris,
+  frame 56 calls / 87,378 tris at the approach, audit 0 z-fighting at 60/120/200, screenshots in
+  `docs/screenshots/stage29/`.
+- **Exact next task:** Stage 30 — the character/pet material pass (characters and pets get the same treatment as the
+  scenery: proper materials, readable silhouettes and faces at phone distance, no new geometry cost that the software
+  renderer cannot afford); check each character and pet still taps and speaks, then sync the same PR.
 - **Tooling now available (2026-11-23):** `@gltf-transform/cli` 4.5.1 is a devDependency; KTX-Software `ktx`
   v4.4.2 is at `~/ktx/bin` (ETC1S/Basis verified on `tree_0.glb`, output valid `KHR_texture_basisu`); Blender
   4.2.3 LTS runs headless from `~/blender-4.2.3-linux-x64` with user-space libs. KTX2 is **not** wired into

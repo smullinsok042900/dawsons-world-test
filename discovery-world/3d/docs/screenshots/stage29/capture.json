@@ -1,0 +1,77 @@
+{
+  "url": "file:///workspace/chats/239bbbd65cda24ad89787673/discovery-world/3d/index.html",
+  "shots": [
+    {
+      "name": "pluto-approach",
+      "x": 12,
+      "info": {
+        "calls": 56,
+        "tris": 87378,
+        "geos": 1309,
+        "progs": 148
+      },
+      "models": {
+        "ground": {
+          "meshes": 1,
+          "tris": 40772
+        },
+        "place": {
+          "meshes": 30,
+          "tris": 73354
+        }
+      }
+    },
+    {
+      "name": "pluto-heart-plain",
+      "x": 34,
+      "info": {
+        "calls": 58,
+        "tris": 86160,
+        "geos": 1314,
+        "progs": 149
+      },
+      "models": {
+        "ground": {
+          "meshes": 1,
+          "tris": 40772
+        },
+        "place": {
+          "meshes": 30,
+          "tris": 73354
+        }
+      }
+    },
+    {
+      "name": "pluto-heart",
+      "x": 60,
+      "info": {
+        "calls": 61,
+        "tris": 89000,
+        "geos": 1322,
+        "progs": 149
+      },
+      "models": {
+        "ground": {
+          "meshes": 1,
+          "tris": 40772
+        },
+        "place": {
+          "meshes": 68,
+          "tris": 118046
+        }
+      }
+    }
+  ],
+  "models": {
+    "ground": {
+      "meshes": 1,
+      "tris": 40772
+    },
+    "place": {
+      "meshes": 30,
+      "tris": 73354
+    }
+  },
+  "errors": [],
+  "oops": false
+}
