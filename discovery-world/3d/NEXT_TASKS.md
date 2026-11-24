@@ -72,10 +72,10 @@ remove it here and record it in `DEVELOPMENT_LOG.md`. Add new findings (bugs, id
   planet and diamond rain re-tapped): ground mesh 1 mesh / 17,400 tris, whole place 48 meshes / 71,152 tris, frame
   71 calls / 81,730 tris at the approach, audit 0 z-fighting at 12/44/72/120, screenshots in `docs/screenshots/stage27/`.
 - **Done:** Stage 28 — Neptune (a 150x58 banded deck with the strongest belts of the four and a banked far deck, four
-  band-aligned rows of cloud banks, low wisp streaks, the Great Dark Spot repainted over the bands on a calm plateau,
-  and the windsock gust and wind-ride button re-verified): ground mesh 1 mesh / 17,400 tris, whole place 35 meshes /
-  81,214 tris, frame 56 calls / 91,638 tris at the approach, audit 0 z-fighting at 12/44/72/120, screenshots in
-  `docs/screenshots/stage28/`.
+  band-aligned rows of cloud banks, low wisp streaks, a raised Great Dark Spot vortex beside the walkway over a painted
+  oval on the deck, and the windsock gust and wind-ride button re-verified): ground mesh 1 mesh / 17,400 tris, whole
+  place 40 meshes / 84,094 tris, frame 56 calls / 91,638 tris at the approach, audit 0 z-fighting at 12/44/72/99,
+  screenshots in `docs/screenshots/stage28/`.
 - **Exact next task:** Stage 29 — Pluto (a layered surface with depth to match the other planets, the heart plain and
   the existing rides kept working); capture with `node tools/capture.cjs docs/screenshots/stage29 '[[…,…]]' --place
   pluto`, run both tests and `node tools/audit.cjs --place pluto …`, then sync the same PR.

@@ -7,6 +7,30 @@
       "info": {
         "calls": 56,
         "tris": 91638,
+        "geos": 1303,
+        "progs": 147
+      },
+      "models": {
+        "ground": {
+          "meshes": 1,
+          "tris": 17400
+        },
+        "place": {
+          "meshes": 40,
+          "tris": 84094
+        },
+        "storm": {
+          "meshes": 5,
+          "tris": 2880
+        }
+      }
+    },
+    {
+      "name": "neptune-deck",
+      "x": 72,
+      "info": {
+        "calls": 53,
+        "tris": 84426,
         "geos": 1309,
         "progs": 147
       },
@@ -16,18 +40,22 @@
           "tris": 17400
         },
         "place": {
-          "meshes": 35,
-          "tris": 81214
+          "meshes": 75,
+          "tris": 96062
+        },
+        "storm": {
+          "meshes": 5,
+          "tris": 2880
         }
       }
     },
     {
-      "name": "neptune-deck",
-      "x": 72,
+      "name": "neptune-dark-spot",
+      "x": 99,
       "info": {
-        "calls": 54,
-        "tris": 85740,
-        "geos": 1314,
+        "calls": 60,
+        "tris": 88658,
+        "geos": 1320,
         "progs": 147
       },
       "models": {
@@ -36,8 +64,12 @@
           "tris": 17400
         },
         "place": {
-          "meshes": 70,
-          "tris": 93182
+          "meshes": 75,
+          "tris": 96062
+        },
+        "storm": {
+          "meshes": 5,
+          "tris": 2880
         }
       }
     }
@@ -48,8 +80,12 @@
       "tris": 17400
     },
     "place": {
-      "meshes": 35,
-      "tris": 81214
+      "meshes": 40,
+      "tris": 84094
+    },
+    "storm": {
+      "meshes": 5,
+      "tris": 2880
     }
   },
   "errors": [],
