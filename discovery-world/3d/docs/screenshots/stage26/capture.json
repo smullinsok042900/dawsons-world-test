@@ -1,0 +1,77 @@
+{
+  "url": "file:///workspace/chats/239bbbd65cda24ad89787673/discovery-world/3d/index.html",
+  "shots": [
+    {
+      "name": "saturn-approach",
+      "x": 12,
+      "info": {
+        "calls": 64,
+        "tris": 82398,
+        "geos": 1313,
+        "progs": 150
+      },
+      "models": {
+        "ground": {
+          "meshes": 1,
+          "tris": 17400
+        },
+        "place": {
+          "meshes": 43,
+          "tris": 72618
+        }
+      }
+    },
+    {
+      "name": "saturn-bands",
+      "x": 72,
+      "info": {
+        "calls": 69,
+        "tris": 80540,
+        "geos": 1323,
+        "progs": 150
+      },
+      "models": {
+        "ground": {
+          "meshes": 1,
+          "tris": 17400
+        },
+        "place": {
+          "meshes": 63,
+          "tris": 87682
+        }
+      }
+    },
+    {
+      "name": "saturn-hexagon",
+      "x": 57,
+      "info": {
+        "calls": 69,
+        "tris": 80672,
+        "geos": 1326,
+        "progs": 150
+      },
+      "models": {
+        "ground": {
+          "meshes": 1,
+          "tris": 17400
+        },
+        "place": {
+          "meshes": 63,
+          "tris": 87682
+        }
+      }
+    }
+  ],
+  "models": {
+    "ground": {
+      "meshes": 1,
+      "tris": 17400
+    },
+    "place": {
+      "meshes": 43,
+      "tris": 72618
+    }
+  },
+  "errors": [],
+  "oops": false
+}

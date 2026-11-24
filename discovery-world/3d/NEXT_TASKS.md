@@ -61,9 +61,14 @@ remove it here and record it in `DEVELOPMENT_LOG.md`. Add new findings (bugs, id
   screenshots in `docs/screenshots/stage25/`.
 - **Done (Venus re-check):** the trimmed cloud deck re-captured at the approach and both walking views — 57 calls /
   113,622 tris, deck still reads as a continuous bank, so no near-sheet detail was restored (`docs/screenshots/venus-recheck/`).
-- **Exact next task:** Stage 26 — Saturn (ring geometry and gap detail, banded cloud deck with depth, hexagon storm);
-  capture with `node tools/capture.cjs docs/screenshots/stage26 '[[…,…]]' --place saturn`, run both tests and
-  `node tools/audit.cjs --place saturn …`, then sync the same PR.
+- **Done:** Stage 26 — Saturn (four separate 220-segment ring annuli with real Cassini/Encke gaps and 1024-px
+  banding, a 150x58 banded deck whose height follows the belts and zones, three rows of band-aligned cloud banks, a
+  five-tier stepped hexagonal storm with dark skirts and foam caps, low wisp streaks): ground mesh 1 mesh / 17,400
+  tris, whole place 43 meshes / 72,618 tris, frame 64 calls / 82,398 tris at the approach, audit 0 z-fighting at
+  12/44/72/120, screenshots in `docs/screenshots/stage26/`.
+- **Exact next task:** Stage 27 — Uranus (upright ring geometry with gaps, banded deck, the rolling planet and
+  diamond rain kept working); capture with `node tools/capture.cjs docs/screenshots/stage27 '[[…,…]]' --place
+  uranus`, run both tests and `node tools/audit.cjs --place uranus …`, then sync the same PR.
 - **Tooling now available (2026-11-23):** `@gltf-transform/cli` 4.5.1 is a devDependency; KTX-Software `ktx`
   v4.4.2 is at `~/ktx/bin` (ETC1S/Basis verified on `tree_0.glb`, output valid `KHR_texture_basisu`); Blender
   4.2.3 LTS runs headless from `~/blender-4.2.3-linux-x64` with user-space libs. KTX2 is **not** wired into
